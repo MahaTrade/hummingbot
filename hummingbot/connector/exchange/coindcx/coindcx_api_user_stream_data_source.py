@@ -25,8 +25,8 @@ COINDCX_USER_STREAM_ENDPOINT = "https://stream.coindcx.com"
 MAX_RETRIES = 20
 NaN = float("nan")
 
-api_key = '6b704411e1e416bac93dad3f17813e6ded5f23caff181b66'
-secret_key = 'a1fd56eff81aec64d80f75e3b5b96390bdd3cfaade0608055d8106265335fbce'
+api_key = 'XXXX'
+secret_key = 'XXXX'
 
 
 class CoindcxAPIUserStreamDataSource(UserStreamTrackerDataSource):

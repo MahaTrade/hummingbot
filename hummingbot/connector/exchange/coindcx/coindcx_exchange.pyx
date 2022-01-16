@@ -474,8 +474,8 @@ cdef class CoindcxExchange(ExchangeBase):
                                 min_order_size=Decimal(info["min_quantity"]),
                                 max_order_size=Decimal(info["max_quantity"]),
                                 #min_price_increment=Decimal(info['priceIncrement']),
-                                min_base_amount_increment=Decimal(10 ** (-1*info['target_currency_precision'])),
-                                min_quote_amount_increment=Decimal(10 ** (-1*info['base_currency_precision'])),
+                                min_base_amount_increment=10 ** (-1*info['target_currency_precision']),
+                                min_quote_amount_increment=10 ** (-1*info['base_currency_precision']),
                                 min_notional_size=Decimal(info["min_notional"]))
                 )
             except Exception:
@@ -487,9 +487,8 @@ cdef class CoindcxExchange(ExchangeBase):
             "id": exchange_order_id, # Enter your Order ID here.
             "timestamp": int(round(time.time() * 1000))
         }
-        print('490',body)
         path_url = f"/exchange/v1/orders/status"
-        return await self._api_request("get", path_url=path_url,data=body, is_auth_required=True)
+        return await self._api_request("post", path_url=path_url,data=body, is_auth_required=True)
 
     async def _update_order_status(self):
         cdef:
@@ -499,9 +498,7 @@ cdef class CoindcxExchange(ExchangeBase):
 
         if current_tick > last_tick and len(self._in_flight_orders) > 0:
             tracked_orders = list(self._in_flight_orders.values())
-            print('501 here',tracked_orders)
             for tracked_order in tracked_orders:
-                print('503 here')
                 exchange_order_id = await tracked_order.get_exchange_order_id()
                 order_update = await self.get_order_status(exchange_order_id)
                 if order_update is None:
@@ -512,28 +509,24 @@ cdef class CoindcxExchange(ExchangeBase):
                                         f"The order has either been filled or canceled."
                     )
                     continue
+                order_status = order_update["status"]
+                print('order_status',order_status)
+                if order_status == 'open':
+                    tracked_order.last_state = "DEAL"
+                elif order_status == 'filled' or order_status == 'partially_illed':
+                    tracked_order.last_state = "DONE"
+                elif order_status == "cancelled":
+                    tracked_order.last_state = "CANCEL" 
+                order_type = tracked_order.order_type.name.lower()
+                trade_type = tracked_order.trade_type.name.lower()
+                execute_price = order_update["total_quantity"] - order_update["remaining_quantity"]
 
-                order_state = order_update["data"]["isActive"]
-                if order_state:
-                    continue
-
-                # Calculate the newly executed amount for this update.
-                if order_update["data"]["opType"] == "DEAL":
-                    if order_state:
-                        tracked_order.last_state = "DEAL"
-                    else:
-                        tracked_order.last_state = "DONE"
-                else:
-                    tracked_order.last_state = "CANCEL"
-                new_confirmed_amount = Decimal(
-                    order_update["data"]["dealFunds"])  # API isn't detailed enough assuming dealSize
-                execute_amount_diff = Decimal(order_update["data"]["dealSize"])
+                new_confirmed_amount = tracked_order.amount - order_update["remaining_quantity"]
+                execute_amount_diff = new_confirmed_amount - float(tracked_order.executed_amount_base)
+                tracked_order.executed_amount_base = new_confirmed_amount
+                tracked_order.executed_amount_quote += execute_amount_diff * execute_price
 
                 if execute_amount_diff > s_decimal_0:
-                    tracked_order.executed_amount_base = Decimal(order_update["data"]["dealSize"])
-                    tracked_order.executed_amount_quote = new_confirmed_amount
-                    tracked_order.fee_paid = Decimal(order_update["data"]["fee"])
-                    execute_price = Decimal(order_update["data"]["dealFunds"]) / execute_amount_diff
                     order_filled_event = OrderFilledEvent(
                         self._current_timestamp,
                         tracked_order.client_order_id,
@@ -555,14 +548,16 @@ cdef class CoindcxExchange(ExchangeBase):
                     self.logger().info(f"Filled {execute_amount_diff} out of {tracked_order.amount} of the "
                                        f"order {tracked_order.client_order_id}.")
                     self.c_trigger_event(self.MARKET_ORDER_FILLED_EVENT_TAG, order_filled_event)
+                if order_status == "filled" or order_status == "partially_filled":
+                    tracked_order.last_state = "CLOSED"
+                    self.logger().info(f"The {order_type}-{trade_type} "
+                                        f"{tracked_order.client_order_id} has completed according to CoinDCX order status API.")
 
-                if order_state is False and order_update["data"]["cancelExist"] is False:
-                    self.c_stop_tracking_order(tracked_order.client_order_id)
                     if tracked_order.trade_type is TradeType.BUY:
-                        self.logger().info(f"The market buy order {tracked_order.client_order_id} has completed "
-                                           f"according to order status API.")
+                        #self.logger().info(f"The market buy order {tracked_order.client_order_id} has completed "
+                                        #f"according to order status API.")
                         self.c_trigger_event(self.MARKET_BUY_ORDER_COMPLETED_EVENT_TAG,
-                                             BuyOrderCompletedEvent(self._current_timestamp,
+                                            BuyOrderCompletedEvent(self._current_timestamp,
                                                                     tracked_order.client_order_id,
                                                                     tracked_order.base_asset,
                                                                     tracked_order.quote_asset,
@@ -573,21 +568,22 @@ cdef class CoindcxExchange(ExchangeBase):
                                                                     tracked_order.order_type,
                                                                     exchange_order_id=tracked_order.exchange_order_id))
                     else:
-                        self.logger().info(f"The market sell order {tracked_order.client_order_id} has completed "
-                                           f"according to order status API.")
-                        self.c_trigger_event(self.MARKET_SELL_ORDER_COMPLETED_EVENT_TAG,
-                                             SellOrderCompletedEvent(self._current_timestamp,
-                                                                     tracked_order.client_order_id,
-                                                                     tracked_order.base_asset,
-                                                                     tracked_order.quote_asset,
-                                                                     tracked_order.fee_asset or tracked_order.quote_asset,
-                                                                     float(tracked_order.executed_amount_base),
-                                                                     float(tracked_order.executed_amount_quote),
-                                                                     float(tracked_order.fee_paid),
-                                                                     tracked_order.order_type,
-                                                                     exchange_order_id=tracked_order.exchange_order_id))
+                            #self.logger().info(f"The market sell order {tracked_order.client_order_id} has completed "
+                                            #f"according to order status API.")
+                            self.c_trigger_event(self.MARKET_SELL_ORDER_COMPLETED_EVENT_TAG,
+                                                SellOrderCompletedEvent(self._current_timestamp,
+                                                                        tracked_order.client_order_id,
+                                                                        tracked_order.base_asset,
+                                                                        tracked_order.quote_asset,
+                                                                        tracked_order.fee_asset or tracked_order.quote_asset,
+                                                                        float(tracked_order.executed_amount_base),
+                                                                        float(tracked_order.executed_amount_quote),
+                                                                        float(tracked_order.fee_paid),
+                                                                        tracked_order.order_type,
+                                                                        exchange_order_id=tracked_order.exchange_order_id))
 
-                if order_state is False and order_update["data"]["cancelExist"] is True:
+                elif order_status == "cancelled":
+                    tracked_order.last_state = "CANCELLED"
                     self.c_stop_tracking_order(tracked_order.client_order_id)
                     self.logger().info(f"The market order {tracked_order.client_order_id} has been cancelled according"
                                        f" to order status API.")
@@ -600,7 +596,6 @@ cdef class CoindcxExchange(ExchangeBase):
         while True:
             try:
                 await self._poll_notifier.wait()
-
                 await safe_gather(
                     self._update_balances(),
                     self._update_order_status(),
@@ -657,30 +652,22 @@ cdef class CoindcxExchange(ExchangeBase):
         path_url = "/exchange/v1/orders/create"
         side = "buy" if is_buy else "sell"
         order_type_str = "limit_order"
-        print('price',price,float(price))
-        print('amount',amount,float(amount))
         params = {
-            #"price_per_unit": float(price),
+            "price_per_unit": float(price),
             "total_quantity": float(amount),
-            "price_per_unit": 1.111,  # This parameter is only required for a 'limit_order'
-            #"total_quantity": 14, 
             "side": side,
             "market": trading_pair.replace('-',''),
             "order_type": order_type_str,
             "timestamp": int(round(time.time() * 1000))
         }
-        #if order_type is OrderType.LIMIT:
-        #    params["price_per_unit"] = str(price)
-        #    params["hidden"] = True
-        #elif order_type is OrderType.LIMIT_MAKER:
-        #    params["price_per_unit"] = str(price)
-        #    params["postOnly"] = True
+        print('params',params)
         exchange_order_id = await self._api_request(
             "post",
             path_url=path_url,
             data=params,
             is_auth_required=True
         )
+        print('order',exchange_order_id)
         return str(exchange_order_id["orders"][0]['id'])
 
     async def execute_buy(self,
@@ -700,14 +687,12 @@ cdef class CoindcxExchange(ExchangeBase):
         if order_type is OrderType.LIMIT or order_type is OrderType.LIMIT_MAKER:
             decimal_amount = self.c_quantize_order_amount(trading_pair, amount)
             decimal_price = self.c_quantize_order_price(trading_pair, price)
-            print('decimal_price',decimal_price)
             if decimal_amount < trading_rule.min_order_size:
                 raise ValueError(f"Buy order amount {decimal_amount} is lower than the minimum order size "
                                  f"{trading_rule.min_order_size}.")
         try:
             exchange_order_id = await self.place_order(order_id, trading_pair, decimal_amount, True, order_type,
                                                        decimal_price)
-            print('exchange_order_id',exchange_order_id)
             self.c_start_tracking_order(
                 client_order_id=order_id,
                 exchange_order_id=exchange_order_id,
@@ -715,7 +700,7 @@ cdef class CoindcxExchange(ExchangeBase):
                 order_type=order_type,
                 trade_type=TradeType.BUY,
                 price=decimal_price,
-                amount=decimal_amount
+                amount=float(decimal_amount)
             )
             tracked_order = self._in_flight_orders.get(order_id)
             print('tracked_order',tracked_order)
@@ -788,7 +773,7 @@ cdef class CoindcxExchange(ExchangeBase):
                 order_type=order_type,
                 trade_type=TradeType.SELL,
                 price=decimal_price,
-                amount=decimal_amount
+                amount=float(decimal_amount)
             )
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is not None:
@@ -832,7 +817,6 @@ cdef class CoindcxExchange(ExchangeBase):
 
     async def execute_cancel(self, trading_pair: str, order_id: str):
         try:
-            print('execute_cancel',order_id)
             tracked_order = self._in_flight_orders.get(order_id)
             if tracked_order is None:
                 raise ValueError(f"Failed to cancel order - {order_id}. Order not found.")
@@ -875,7 +859,6 @@ cdef class CoindcxExchange(ExchangeBase):
             responses = await safe_gather(*cancellation_tasks)
 
             for tracked_order, response in zip(tracked_orders.values(), responses):
-                print('877',tracked_order,"     ",response)
                 if response is not None:
                 # Handle failed cancelled orders
                     if isinstance(response, Exception) :
