@@ -685,8 +685,11 @@ cdef class CoindcxExchange(ExchangeBase):
             object tracked_order
 
         if order_type is OrderType.LIMIT or order_type is OrderType.LIMIT_MAKER:
-            decimal_amount = self.c_quantize_order_amount(trading_pair, amount)
-            decimal_price = self.c_quantize_order_price(trading_pair, price)
+            #decimal_amount = self.c_quantize_order_amount(trading_pair, amount)
+            #decimal_price = self.c_quantize_order_price(trading_pair, price)
+            decimal_amount = Decimal(str(amount)).quantize(Decimal(str(trading_rule.min_base_amount_increment)))
+            decimal_price = Decimal(str(price)).quantize(Decimal(str(trading_rule.min_quote_amount_increment)))
+            print('690',decimal_amount,decimal_price)
             if decimal_amount < trading_rule.min_order_size:
                 raise ValueError(f"Buy order amount {decimal_amount} is lower than the minimum order size "
                                  f"{trading_rule.min_order_size}.")
@@ -699,7 +702,7 @@ cdef class CoindcxExchange(ExchangeBase):
                 trading_pair=trading_pair,
                 order_type=order_type,
                 trade_type=TradeType.BUY,
-                price=decimal_price,
+                price=float(decimal_price),
                 amount=float(decimal_amount)
             )
             tracked_order = self._in_flight_orders.get(order_id)
@@ -757,8 +760,10 @@ cdef class CoindcxExchange(ExchangeBase):
             str exchange_order_id
             object tracked_order
 
-        decimal_amount = self.quantize_order_amount(trading_pair, amount)
-        decimal_price = self.c_quantize_order_price(trading_pair, price)
+        #decimal_amount = self.quantize_order_amount(trading_pair, amount)
+        #decimal_price = self.c_quantize_order_price(trading_pair, price)
+        decimal_amount = Decimal(str(amount)).quantize(Decimal(str(trading_rule.min_base_amount_increment)))
+        decimal_price = Decimal(str(price)).quantize(Decimal(str(trading_rule.min_quote_amount_increment)))
         if decimal_amount < trading_rule.min_order_size:
             raise ValueError(f"Sell order amount {decimal_amount} is lower than the minimum order size "
                              f"{trading_rule.min_order_size}.")
@@ -772,7 +777,7 @@ cdef class CoindcxExchange(ExchangeBase):
                 trading_pair=trading_pair,
                 order_type=order_type,
                 trade_type=TradeType.SELL,
-                price=decimal_price,
+                price=float(decimal_price),
                 amount=float(decimal_amount)
             )
             tracked_order = self._in_flight_orders.get(order_id)
