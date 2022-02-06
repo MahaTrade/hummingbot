@@ -5,11 +5,6 @@ api = Flask(__name__)
 verification_token = global_config_map.get("slack_verification_token").value
 
 
-@api.route('/test', methods=['GET'])
-def test():
-    return 'Here'
-
-
 @api.route('/slack', methods=['POST'])
 def start():
     from hummingbot.client.hummingbot_application import HummingbotApplication
@@ -18,5 +13,6 @@ def start():
     return 'True'
 
 
-def run_api():
-    api.run(port=5002)
+def start_slack_server(port = 5002):
+    print('starting slack server on port', port)
+    api.run(port=port)

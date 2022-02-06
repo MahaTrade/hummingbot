@@ -20,18 +20,6 @@ from hummingbot.client.config.global_config_map import global_config_map
 from hummingbot.core.utils.async_call_scheduler import AsyncCallScheduler
 from hummingbot.core.utils.async_utils import safe_ensure_future
 
-# client = slack.WebClient(token=global_config_map.get("slack_token").value)
-# verification_token = global_config_map.get("slack_verification_token").value
-
-# api = Flask(__name__)
-
-DISABLED_COMMANDS = {
-    "connect",             # disabled because telegram can't display secondary prompt
-    "create",              # disabled because telegram can't display secondary prompt
-    "import",              # disabled because telegram can't display secondary prompt
-    "export",              # disabled for security
-}
-
 
 class SlackNotifier(NotifierBase):
     tn_logger: Optional[HummingbotLogger] = None
@@ -102,7 +90,3 @@ class SlackNotifier(NotifierBase):
             channel=self._channel,
             text=msg
         ))
-
-
-# if __name__ == 'hummingbot.notifier.slack_notifier':
-#     api.run(port=5000)

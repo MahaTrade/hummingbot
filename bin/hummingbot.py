@@ -26,7 +26,6 @@ from hummingbot import (
 from hummingbot.client.ui import login_prompt
 from hummingbot.client.ui.stdout_redirection import patch_stdout
 from hummingbot.core.utils.async_utils import safe_gather
-# from hummingbot.notifier.slack_server import run_api
 
 
 def detect_available_port(starting_port: int) -> int:
@@ -79,6 +78,7 @@ if __name__ == "__main__":
     parser.add_argument('--balance', action='store_true', help='shows the balance of the users accounts')
 
     args: argparse.Namespace = parser.parse_args()
+    chdir_to_data_directory()
 
     if args.no_ui:
         password = args.password
@@ -86,7 +86,6 @@ if __name__ == "__main__":
             print('password is missing. please provide one with --password')
             sys.exit()
 
-    chdir_to_data_directory()
-    if login_prompt():
+    if login_prompt(args):
         ev_loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
         ev_loop.run_until_complete(main())

@@ -24,8 +24,7 @@ from hummingbot.client.config.config_helpers import (
     update_strategy_config_map_from_file,
     all_configs_complete,
 )
-from hummingbot.client.ui import login_prompt
-from hummingbot.client.ui.stdout_redirection import patch_stdout
+from hummingbot.client.ui import create_password
 from hummingbot.core.utils.async_utils import safe_gather
 from hummingbot.core.management.console import start_management_console
 from bin.hummingbot import (
@@ -50,11 +49,23 @@ class CmdlineParser(argparse.ArgumentParser):
                           type=str,
                           required=False,
                           help="Specify the password to unlock your encrypted files and wallets.")
+        self.add_argument("--strategy",
+                          type=str,
+                          required=False,
+                          help="Specify the strategy config to load.")
         self.add_argument("--auto-set-permissions",
                           type=str,
                           required=False,
                           help="Try to automatically set config / logs / data dir permissions, "
                                "useful for Docker containers.")
+        self.add_argument("--connect",
+                          required=False,
+                          nargs='*',
+                          help="Tries to connect to the given exchange")
+        self.add_argument("--slack",
+                          required=False,
+                          nargs='*',
+                          help="Starts the slack server to listen for commands")
 
 
 def autofix_permissions(user_group_spec: str):
@@ -98,25 +109,27 @@ async def quick_start(args):
         if not all_configs_complete(hb.strategy_name):
             hb.status()
 
-    with patch_stdout(log_field=hb.app.log_field):
-        dev_mode = check_dev_mode()
-        if dev_mode:
-            hb.app.log("Running from dev branches. Full remote logging will be enabled.")
+    dev_mode = check_dev_mode()
+    if dev_mode:
+        hb.app.log("Running from dev branches. Full remote logging will be enabled.")
 
-        log_level = global_config_map.get("log_level").value
-        init_logging("hummingbot_logs.yml",
-                     override_log_level=log_level,
-                     dev_mode=dev_mode)
+    log_level = global_config_map.get("log_level").value
+    init_logging("hummingbot_logs.yml",
+                 override_log_level=log_level,
+                 dev_mode=dev_mode)
 
-        if hb.strategy_file_name is not None and hb.strategy_name is not None:
-            await write_config_to_yml(hb.strategy_name, hb.strategy_file_name)
-            hb.start(log_level)
+    if hb.strategy_file_name is not None and hb.strategy_name is not None:
+        await write_config_to_yml(hb.strategy_name, hb.strategy_file_name)
+        hb.start(log_level)
 
-        tasks: List[Coroutine] = [hb.run()]
-        if global_config_map.get("debug_console").value:
-            management_port: int = detect_available_port(8211)
-            tasks.append(start_management_console(locals(), host="localhost", port=management_port))
-        await safe_gather(*tasks)
+    tasks: List[Coroutine] = [hb.run_commands(args)]
+
+    # enable debug console if needed
+    if global_config_map.get("debug_console").value:
+        management_port: int = detect_available_port(8211)
+        tasks.append(start_management_console(locals(), host="localhost", port=management_port))
+
+    await safe_gather(*tasks)
 
 
 def main():
@@ -133,9 +146,7 @@ def main():
         args.config_password = os.environ["CONFIG_PASSWORD"]
 
     # If no password is given from the command line, prompt for one.
-    if args.config_password is None:
-        if not login_prompt():
-            return
+    create_password(args.config_password)
 
     asyncio.get_event_loop().run_until_complete(quick_start(args))
 
