@@ -5,7 +5,8 @@ import path_util        # noqa: F401
 import asyncio
 import errno
 import socket
-import threading
+# import threading
+import sys
 from typing import (
     List,
     Coroutine
@@ -24,7 +25,7 @@ from hummingbot import (
 from hummingbot.client.ui import login_prompt
 from hummingbot.client.ui.stdout_redirection import patch_stdout
 from hummingbot.core.utils.async_utils import safe_gather
-from hummingbot.notifier.slack_server import run_api
+# from hummingbot.notifier.slack_server import run_api
 
 
 def detect_available_port(starting_port: int) -> int:
@@ -41,7 +42,7 @@ def detect_available_port(starting_port: int) -> int:
         return current_port
 
 
-async def main():
+async def main(argv):
     await create_yml_files()
 
     # This init_logging() call is important, to skip over the missing config warnings.
@@ -50,7 +51,6 @@ async def main():
     await read_system_configs_from_yml()
 
     hb = HummingbotApplication.main_application()
-
     with patch_stdout(log_field=hb.app.log_field):
         dev_mode = check_dev_mode()
         if dev_mode:
@@ -58,7 +58,7 @@ async def main():
         init_logging("hummingbot_logs.yml",
                      override_log_level=global_config_map.get("log_level").value,
                      dev_mode=dev_mode)
-        tasks: List[Coroutine] = [hb.run()]
+        tasks: List[Coroutine] = [hb.run(argv)]
         if global_config_map.get("debug_console").value:
             if not hasattr(__builtins__, "help"):
                 import _sitebuiltins
@@ -67,17 +67,17 @@ async def main():
             from hummingbot.core.management.console import start_management_console
             management_port: int = detect_available_port(8211)
             tasks.append(start_management_console(locals(), host="localhost", port=management_port))
-        await safe_gather(*tasks)
+    await safe_gather(*tasks)
 
 
 if __name__ == "__main__":
-    thread1 = threading.Thread(target=run_api)
+    # thread1 = threading.Thread(target=run_api)
     # thread2 = threading.Thread(target=run_api)
 
-    thread1.start()
+    # thread1.start()
     # thread2.start()
 
     chdir_to_data_directory()
-    if login_prompt():
+    if login_prompt(sys.argv[-1]):
         ev_loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        ev_loop.run_until_complete(main())
+        ev_loop.run_until_complete(main(sys.argv))

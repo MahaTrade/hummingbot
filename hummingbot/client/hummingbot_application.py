@@ -37,6 +37,7 @@ from hummingbot.strategy.market_trading_pair_tuple import MarketTradingPairTuple
 from hummingbot.connector.markets_recorder import MarketsRecorder
 from hummingbot.client.config.security import Security
 from hummingbot.connector.exchange_base import ExchangeBase
+from hummingbot.notifier.slack_server import run_api
 from hummingbot.client.settings import CONNECTOR_SETTINGS, ConnectorType
 s_logger = None
 
@@ -119,15 +120,16 @@ class HummingbotApplication(*commands):
         return None
 
     def _notify(self, msg: str):
-        self.app.log(msg)
-        for notifier in self.notifiers:
-            notifier.add_msg_to_queue(msg)
+        print(msg)
+        # self.app.log(msg)
+        # for notifier in self.notifiers:
+        #     notifier.add_msg_to_queue(msg)
 
     def _handle_command(self, raw_command: str):
         # print(f'_handle_command input {raw_command}')
         # unset to_stop_config flag it triggered before loading any command
-        if self.app.to_stop_config:
-            self.app.to_stop_config = False
+        # if self.app.to_stop_config:
+        #     self.app.to_stop_config = False
 
         raw_command = raw_command.lower().strip()
         command_split = raw_command.split()
@@ -208,8 +210,30 @@ class HummingbotApplication(*commands):
             self._notify("All outstanding orders cancelled.")
         return success
 
-    async def run(self):
-        await self.app.run()
+    async def run(self, args):
+        if len(args) <= 1:
+            print('no arguments passed')
+        else:
+            if args[1] == 'balance':
+                await self.show_balances()
+            elif args[1] == 'connect':
+                if(len(args) >= 3):
+                    await self.connect_exchange(args)
+                else:
+                    await self.show_connections()
+            elif args[1] == 'config':
+                if(len(args) >= 3):
+                    self.config(args[2], args[3])
+                else:
+                    self.list_configs()
+            elif args[1] == 'create':
+                self.create(args[2], args)
+            elif args[1] == 'import':
+                self.import_command(args[2])
+            elif args[1] == 'start_slack':
+                run_api()
+            else:
+                print('invalid arguments')
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()
