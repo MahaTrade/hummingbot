@@ -4,7 +4,7 @@ import path_util        # noqa: F401
 import argparse
 import asyncio
 import logging
-import threading
+# import threading
 from typing import (
     Coroutine,
     List,
@@ -127,16 +127,16 @@ async def quick_start(args):
 
     tasks.append(hb.run_commands(args))
 
-    if args.slack:
-        slack = SlackServer(hb)
-        threading.Thread(target=lambda: slack.start_slack_server()).start()
-
     # enable debug console if needed
     if global_config_map.get("debug_console").value:
         management_port: int = detect_available_port(8211)
         tasks.append(start_management_console(locals(), host="localhost", port=management_port))
 
     await safe_gather(*tasks)
+
+    if args.slack:
+        slack = SlackServer(hb, hb.ev_loop)
+        slack.run()
 
 
 def main():

@@ -16,6 +16,7 @@ from hummingbot.model.sql_connection_manager import SQLConnectionManager
 from hummingbot.connector.exchange.paper_trade import create_paper_trade_market
 from hummingbot.wallet.ethereum.ethereum_chain import EthereumChain
 from hummingbot.wallet.ethereum.web3_wallet import Web3Wallet
+# from hummingbot.notifier.slack_server import SlackServer
 from hummingbot.client.ui.keybindings import load_key_bindings
 from hummingbot.client.ui.parser import load_parser, ThrowingArgumentParser
 from hummingbot.client.ui.hummingbot_cli import HummingbotCLI
@@ -218,8 +219,8 @@ class HummingbotApplication(*commands):
         if args.strategy:
             await self.import_config_file(args.strategy)
 
-        # if args.slack:
-            # await self.app.run()
+        if args.slack:
+            await self.app.run()
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()

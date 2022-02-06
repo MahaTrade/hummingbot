@@ -135,12 +135,12 @@ class StatusCommand:
             return True
 
         # Preliminary checks.
-        self._notify("\nPreliminary checks:")
+        self._notify("\n*Preliminary checks*:")
         if self.strategy_name is None or self.strategy_file_name is None:
-            self._notify('  - Strategy check: Please import or create a strategy.')
+            self._notify('*Strategy check*: Please import or create a strategy.')
             return False
         if not Security.is_decryption_done():
-            self._notify('  - Security check: Encrypted files are being processed. Please wait and try again later.')
+            self._notify('*Security check*: Encrypted files are being processed. Please wait and try again later.')
             return False
         # invalid_conns = await self.validate_required_connections()
         # if invalid_conns:
@@ -148,15 +148,15 @@ class StatusCommand:
         #     for ex, err_msg in invalid_conns.items():
         #         self._notify(f"    {ex}: {err_msg}")
         if notify_success:
-            self._notify('**Exchange check**: All connections confirmed.')
+            self._notify('*Exchange check*: All connections confirmed.')
 
         missing_configs = self.missing_configurations()
         if missing_configs:
-            self._notify("  - Strategy check: Incomplete strategy configuration. The following values are missing.")
+            self._notify("*Strategy check*: Incomplete strategy configuration. The following values are missing.")
             for config in missing_configs:
                 self._notify(f"    {config.key}")
         elif notify_success:
-            self._notify('  - Strategy check: All required parameters confirmed.')
+            self._notify('*Strategy check*: All required parameters confirmed.')
         # if invalid_conns or missing_configs:
         #     return False
 
@@ -174,14 +174,14 @@ class StatusCommand:
                 if self._trading_required:
                     has_minimum_eth = self.wallet.get_balance("ETH") > 0.01
                     if not has_minimum_eth:
-                        self._notify("  - ETH wallet check: Not enough ETH in wallet. "
+                        self._notify("*ETH wallet check*: Not enough ETH in wallet. "
                                      "A small amount of Ether is required for sending transactions on "
                                      "Decentralized Exchanges")
                         return False
                     elif notify_success:
-                        self._notify("  - ETH wallet check: Minimum ETH requirement satisfied")
+                        self._notify("*ETH wallet check*: Minimum ETH requirement satisfied")
             else:
-                self._notify("  - ETH wallet check: ETH wallet is not connected.")
+                self._notify("*ETH wallet check*: ETH wallet is not connected.")
 
         loading_markets: List[ConnectorBase] = []
         for market in self.markets.values():
@@ -189,7 +189,7 @@ class StatusCommand:
                 loading_markets.append(market)
 
         if len(loading_markets) > 0:
-            self._notify("  - Connectors check:  Waiting for connectors " +
+            self._notify("*Connectors check*:  Waiting for connectors " +
                          ",".join([m.name.capitalize() for m in loading_markets]) + " to get ready for trading. \n"
                          "                    Please keep the bot running and try to start again in a few minutes. \n")
 
@@ -226,5 +226,5 @@ class StatusCommand:
                 return False
 
         self.application_warning()
-        self._notify("  - All checks: Confirmed.")
+        self._notify("*All checks*: Confirmed.")
         return True
