@@ -34,7 +34,6 @@ from hummingbot.data_feed.data_feed_base import DataFeedBase
 from hummingbot.notifier.notifier_base import NotifierBase
 from hummingbot.notifier.telegram_notifier import TelegramNotifier
 from hummingbot.notifier.slack_notifier import SlackNotifier
-from hummingbot.notifier.slack_server import start_slack_server
 from hummingbot.strategy.market_trading_pair_tuple import MarketTradingPairTuple
 from hummingbot.connector.markets_recorder import MarketsRecorder
 from hummingbot.client.config.security import Security
@@ -210,6 +209,8 @@ class HummingbotApplication(*commands):
         await self.app.run()
 
     async def run_commands(self, args: argparse.Namespace):
+        self._initialize_notifiers()
+
         if args.connect:
             await self.connect_exchange_manual(args.connect)
             return
@@ -217,8 +218,8 @@ class HummingbotApplication(*commands):
         if args.strategy:
             await self.import_config_file(args.strategy)
 
-        if args.slack:
-            await start_slack_server()
+        # if args.slack:
+            # await self.app.run()
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()
@@ -321,4 +322,5 @@ class HummingbotApplication(*commands):
                     )
                 )
         for notifier in self.notifiers:
+            print('starting', notifier)
             notifier.start()

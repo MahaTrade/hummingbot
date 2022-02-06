@@ -148,7 +148,7 @@ class StatusCommand:
         #     for ex, err_msg in invalid_conns.items():
         #         self._notify(f"    {ex}: {err_msg}")
         if notify_success:
-            self._notify('  - Exchange check: All connections confirmed.')
+            self._notify('**Exchange check**: All connections confirmed.')
 
         missing_configs = self.missing_configurations()
         if missing_configs:

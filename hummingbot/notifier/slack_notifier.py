@@ -11,7 +11,7 @@ from typing import (
 )
 # from notifier import api
 
-import slack
+from slack_sdk import WebClient
 
 import hummingbot
 from hummingbot.logger import HummingbotLogger
@@ -50,6 +50,7 @@ class SlackNotifier(NotifierBase):
             self.logger().info("Slack is listening...")
 
     def stop(self) -> None:
+        self.logger().info("Slack has stopped...")
         if self._send_msg_task:
             self._send_msg_task.cancel()
 
@@ -60,10 +61,13 @@ class SlackNotifier(NotifierBase):
             yield arr[i:i + n]
 
     def add_msg_to_queue(self, msg: str):
-        lines: List[str] = msg.split("\n")
-        msg_chunks: List[List[str]] = self._divide_chunks(lines, 30)
-        for chunk in msg_chunks:
-            self._msg_queue.put_nowait("\n".join(chunk))
+        # self._msg_queue.put_nowait(msg)
+
+        bot = WebClient(token=self._token)  # bot or self._updater.bot
+        bot.chat_postMessage(
+            channel=self._channel,
+            text=msg
+        )
 
     async def send_msg_from_queue(self):
         while True:
@@ -84,7 +88,7 @@ class SlackNotifier(NotifierBase):
         """
         Send given markdown message
         """
-        bot = slack.WebClient(token=self._token)  # bot or self._updater.bot
+        bot = WebClient(token=self._token)  # bot or self._updater.bot
 
         await self._async_call_scheduler.call_async(lambda: bot.chat_postMessage(
             channel=self._channel,

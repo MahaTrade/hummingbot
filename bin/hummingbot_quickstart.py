@@ -4,6 +4,7 @@ import path_util        # noqa: F401
 import argparse
 import asyncio
 import logging
+import threading
 from typing import (
     Coroutine,
     List,
@@ -15,6 +16,7 @@ from hummingbot import (
     check_dev_mode,
     init_logging,
 )
+from hummingbot.notifier.slack_server import SlackServer
 from hummingbot.client.hummingbot_application import HummingbotApplication
 from hummingbot.client.config.global_config_map import global_config_map
 from hummingbot.client.config.config_helpers import (
@@ -121,7 +123,13 @@ async def quick_start(args):
         await write_config_to_yml(hb.strategy_name, hb.strategy_file_name)
         hb.start(log_level)
 
-    tasks: List[Coroutine] = [hb.run_commands(args)]
+    tasks: List[Coroutine] = []
+
+    tasks.append(hb.run_commands(args))
+
+    if args.slack:
+        slack = SlackServer(hb)
+        threading.Thread(target=lambda: slack.start_slack_server()).start()
 
     # enable debug console if needed
     if global_config_map.get("debug_console").value:
