@@ -2,12 +2,10 @@
 
 # from logging import debug
 import path_util        # noqa: F401
-import argparse
 import asyncio
 import errno
 import socket
 # import threading
-import sys
 from typing import (
     List,
     Coroutine
@@ -42,7 +40,7 @@ def detect_available_port(starting_port: int) -> int:
         return current_port
 
 
-async def main(args: argparse.Namespace):
+async def main():
     await create_yml_files()
 
     # This init_logging() call is important, to skip over the missing config warnings.
@@ -59,7 +57,7 @@ async def main(args: argparse.Namespace):
                      override_log_level=global_config_map.get("log_level").value,
                      dev_mode=dev_mode)
 
-        tasks: List[Coroutine] = [hb.run(args)]
+        tasks: List[Coroutine] = [hb.run()]
         if global_config_map.get("debug_console").value:
             if not hasattr(__builtins__, "help"):
                 import _sitebuiltins
@@ -72,20 +70,7 @@ async def main(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--no-ui', action='store_true', help='disables the UI completly and uses the CLI only')
-    parser.add_argument('--password', action='store', help='sets the password for the storage')
-    parser.add_argument('--balance', action='store_true', help='shows the balance of the users accounts')
-
-    args: argparse.Namespace = parser.parse_args()
     chdir_to_data_directory()
-
-    if args.no_ui:
-        password = args.password
-        if password is None or len(password) == 0:
-            print('password is missing. please provide one with --password')
-            sys.exit()
-
-    if login_prompt(args):
+    if login_prompt():
         ev_loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
         ev_loop.run_until_complete(main())

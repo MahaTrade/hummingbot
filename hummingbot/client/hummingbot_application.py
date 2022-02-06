@@ -215,7 +215,7 @@ class HummingbotApplication(*commands):
             return
 
         if args.strategy:
-            await self.import_command(args.strategy)
+            await self.import_config_file(args.strategy)
 
         if args.slack:
             await start_slack_server()

@@ -64,7 +64,6 @@ class CmdlineParser(argparse.ArgumentParser):
                           help="Tries to connect to the given exchange")
         self.add_argument("--slack",
                           required=False,
-                          nargs='*',
                           help="Starts the slack server to listen for commands")
 
 
@@ -147,7 +146,6 @@ def main():
 
     # If no password is given from the command line, prompt for one.
     create_password(args.config_password)
-
     asyncio.get_event_loop().run_until_complete(quick_start(args))
 
 
