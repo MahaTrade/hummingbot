@@ -83,7 +83,6 @@ class ConnectCommand:
 
         count = 0
         for config in exchange_configs:
-            print(config.key, args[count + 1])
             Security.update_secure_config(config.key, args[count + 1])
             count = count + 1
         api_keys = await Security.api_keys(exchange)

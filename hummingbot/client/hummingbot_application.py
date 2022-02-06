@@ -217,7 +217,7 @@ class HummingbotApplication(*commands):
         if args.strategy:
             await self.import_command(args.strategy)
 
-        if args.slack_server:
+        if args.slack:
             await start_slack_server()
 
     def add_application_warning(self, app_warning: ApplicationWarning):
