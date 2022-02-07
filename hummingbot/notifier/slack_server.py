@@ -1,7 +1,8 @@
 from flask import Flask, request
-from hummingbot.client.hummingbot_application import HummingbotApplication
-import asyncio
 from functools import wraps
+from hummingbot.client.hummingbot_application import HummingbotApplication
+from threading import Thread
+import asyncio
 
 
 def async_action(f):
@@ -13,28 +14,26 @@ def async_action(f):
 
 class SlackServer:
     hb: HummingbotApplication
-    api: Flask
 
     def __init__(self, instance: HummingbotApplication, ev_loop):
         self.hb = instance
-        self.ev_loop = ev_loop
 
     async def run(self, port=5002):
-        print('starting slack server on port', port)
-        asyncio.set_event_loop(asyncio.new_event_loop())
         api = Flask(__name__)
+
+        def start_server():
+            print('starting slack server on port', port)
+            api.run(port=port)
 
         @api.route('/slack', methods=['POST'])
         @async_action
-        async def start():
+        def callback():
             command = request.json['command']
-            self.hb._notify('ok got' + command)
+            try:
+                asyncio.set_event_loop(self.hb.ev_loop)
+                asyncio.get_event_loop().call_soon(lambda: self.hb._handle_command(command))
+            finally:
+                return "ok"
 
-            output = f"\n[Slack Input] {command}"
-            self.hb.app.log(output)
-
-            # await safe_ensure_future(self.hb._handle_command, command, loop=self.ev_loop)
-            return "ok"
-
-        self.api = api
-        self.api.run(port=port)
+        thread_b = Thread(target=start_server, daemon=True)
+        thread_b.start()

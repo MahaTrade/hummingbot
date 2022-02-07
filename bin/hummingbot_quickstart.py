@@ -123,7 +123,12 @@ async def quick_start(args):
         await write_config_to_yml(hb.strategy_name, hb.strategy_file_name)
         hb.start(log_level)
 
+    slack = SlackServer(hb, hb.ev_loop)
+
     tasks: List[Coroutine] = []
+
+    if args.slack:
+        tasks.append(slack.run())
 
     tasks.append(hb.run_commands(args))
 
@@ -134,9 +139,8 @@ async def quick_start(args):
 
     await safe_gather(*tasks)
 
-    if args.slack:
-        slack = SlackServer(hb, hb.ev_loop)
-        slack.run()
+    # if args.slack:
+    #     await slack.run()
 
 
 def main():
