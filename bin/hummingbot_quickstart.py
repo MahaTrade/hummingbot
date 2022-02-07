@@ -156,9 +156,6 @@ async def quick_start(args):
 
     await safe_gather(*tasks)
 
-    # if args.slack:
-    #     await slack.run()
-
 
 def main():
     args = CmdlineParser().parse_args()
@@ -178,6 +175,14 @@ def main():
 
     if args.slackChannel is None and len(os.environ.get("SLACK_CHANNEL", "")) > 0:
         args.slackChannel = os.environ["SLACK_CHANNEL"]
+
+    if args.connect is not None:
+        if len(os.environ.get("API_KEY", "")) > 0:
+            args.connect += [os.environ["API_KEY"]]
+        if len(os.environ.get("API_PASSWORD", "")) > 0:
+            args.connect += [os.environ["API_PASSWORD"]]
+        if len(os.environ.get("API_PASSPHRASE", "")) > 0:
+            args.connect += [os.environ["API_PASSPHRASE"]]
 
     # If no password is given from the command line, prompt for one.
     create_password(args.config_password)
