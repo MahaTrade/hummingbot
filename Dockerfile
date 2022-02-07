@@ -4,8 +4,8 @@ FROM ubuntu:20.04 AS builder
 # Install linux dependencies
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y gcc \
-        build-essential pkg-config libusb-1.0 curl git \
-        sudo && \
+    build-essential pkg-config libusb-1.0 curl git \
+    sudo && \
     rm -rf /var/lib/apt/lists/*
 
 # Add hummingbot user
@@ -39,6 +39,9 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | b
 # Copy environment only to optimize build caching, so changes in sources will not cause conda env invalidation
 COPY --chown=hummingbot:hummingbot setup/environment-linux.yml setup/
 
+# https://stackoverflow.com/questions/61875869/ubuntu-20-04-upgrade-python-missing-libffi-so-6/63329830#63329830
+RUN curl -o- http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb | dpkg -i
+
 # ./install | create hummingbot environment
 RUN ~/miniconda3/bin/conda env create -f setup/environment-linux.yml && \
     ~/miniconda3/bin/conda clean -tipsy && \
@@ -63,7 +66,7 @@ RUN /home/hummingbot/miniconda3/envs/$(head -1 setup/environment-linux.yml | cut
 
 # Build final image using artifacts from builer
 FROM ubuntu:20.04 AS release
-# Dockerfile author / maintainer 
+# Dockerfile author / maintainer
 LABEL maintainer="CoinAlpha, Inc. <dev@coinalpha.com>"
 
 # Build arguments
@@ -88,11 +91,11 @@ ENV INSTALLATION_TYPE=docker
 
 # Add hummingbot user
 RUN useradd -m -s /bin/bash hummingbot && \
-  ln -s /conf /home/hummingbot/conf && \
-  ln -s /logs /home/hummingbot/logs && \
-  ln -s /data /home/hummingbot/data && \
-  ln -s /certs /home/hummingbot/certs && \
-  ln -s /scripts /home/hummingbot/scripts
+    ln -s /conf /home/hummingbot/conf && \
+    ln -s /logs /home/hummingbot/logs && \
+    ln -s /data /home/hummingbot/data && \
+    ln -s /certs /home/hummingbot/certs && \
+    ln -s /scripts /home/hummingbot/scripts
 
 # Create mount points
 RUN mkdir /conf /logs /data /certs /scripts && chown -R hummingbot:hummingbot /conf /logs /data /certs /scripts

@@ -86,7 +86,7 @@ class StartCommand:
 
         self._initialize_notifiers()
 
-        self._notify(f"\nStatus check complete. Starting '{self.strategy_name}' strategy...")
+        self._notify(f"\nStatus check complete. Starting `{self.strategy_name}` strategy...")
         if global_config_map.get("paper_trade_enabled").value:
             self._notify("\nPaper Trading ON: All orders are simulated, and no real orders are placed.")
 
@@ -148,7 +148,7 @@ class StartCommand:
                     self._notify(f"Script ({script_file}) started.")
 
             self.strategy_task: asyncio.Task = safe_ensure_future(self._run_clock(), loop=self.ev_loop)
-            self._notify(f"\n'{strategy_name}' strategy started.\n"
+            self._notify(f"\n`{strategy_name}` strategy started.\n"
                          f"Run `status` command to query the progress.")
             self.logger().info("start command initiated.")
 
