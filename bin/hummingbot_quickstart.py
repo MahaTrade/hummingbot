@@ -55,6 +55,15 @@ class CmdlineParser(argparse.ArgumentParser):
                           type=str,
                           required=False,
                           help="Specify the strategy config to load.")
+
+        self.add_argument("--slackChannel",
+                          type=str,
+                          required=False)
+
+        self.add_argument("--slackToken",
+                          type=str,
+                          required=False)
+
         self.add_argument("--auto-set-permissions",
                           type=str,
                           required=False,
@@ -106,6 +115,14 @@ async def quick_start(args):
     if wallet and password:
         global_config_map.get("ethereum_wallet").value = wallet
 
+    if args.slackChannel:
+        global_config_map.get("slack_enabled").value = True
+        global_config_map.get("slack_channel").value = args.slackChannel
+
+    if args.slackToken:
+        global_config_map.get("slack_enabled").value = True
+        global_config_map.get("slack_token").value = args.slackToken
+
     if hb.strategy_name and hb.strategy_file_name:
         if not all_configs_complete(hb.strategy_name):
             hb.status()
@@ -155,6 +172,12 @@ def main():
         args.wallet = os.environ["WALLET"]
     if args.config_password is None and len(os.environ.get("CONFIG_PASSWORD", "")) > 0:
         args.config_password = os.environ["CONFIG_PASSWORD"]
+
+    if args.slackToken is None and len(os.environ.get("SLACK_TOKEN", "")) > 0:
+        args.slackToken = os.environ["SLACK_TOKEN"]
+
+    if args.slackChannel is None and len(os.environ.get("SLACK_CHANNEL", "")) > 0:
+        args.slackChannel = os.environ["SLACK_CHANNEL"]
 
     # If no password is given from the command line, prompt for one.
     create_password(args.config_password)
