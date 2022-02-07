@@ -39,8 +39,10 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | b
 # Copy environment only to optimize build caching, so changes in sources will not cause conda env invalidation
 COPY --chown=hummingbot:hummingbot setup/environment-linux.yml setup/
 
-# https://stackoverflow.com/questions/61875869/ubuntu-20-04-upgrade-python-missing-libffi-so-6/63329830#63329830
-RUN curl -o- http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb | dpkg -i
+# https://stackoverflow.com/questions/61875869/ubuntu-20-04-upgrade-python-missing-libffi-so-6
+USER root
+RUN ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
+USER hummingbot:hummingbot
 
 # ./install | create hummingbot environment
 RUN ~/miniconda3/bin/conda env create -f setup/environment-linux.yml && \
