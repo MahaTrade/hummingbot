@@ -221,7 +221,6 @@ class HummingbotApplication(*commands):
 
         if args.slack:
             while True:
-
                 await asyncio.sleep(1)  # rest over here
 
     def add_application_warning(self, app_warning: ApplicationWarning):
