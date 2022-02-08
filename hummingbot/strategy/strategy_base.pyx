@@ -145,6 +145,9 @@ cdef class StrategyBase(TimeIterator):
         clock_timestamp = pd.Timestamp(self._current_timestamp, unit="s", tz="UTC")
         self.logger().log(log_level, f"{msg} [clock={str(clock_timestamp)}]", **kwargs)
 
+    def log_without_clock(self, log_level: int, msg: str, **kwargs):
+        self.logger().log(log_level, f"{msg}", **kwargs)
+
     @property
     def trades(self) -> List[Trade]:
         """
@@ -582,7 +585,7 @@ cdef class StrategyBase(TimeIterator):
         :param msg: The message to be notified
         """
         timestamp = pd.Timestamp.fromtimestamp(self._current_timestamp)
-        self.notify_hb_app(f"({timestamp}) {msg}")
+        self.notify_hb_app(msg)
 
     # ----------------------------------------------------------------------------------------------------------
     # </editor-fold>
