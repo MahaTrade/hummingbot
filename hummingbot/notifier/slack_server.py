@@ -15,7 +15,7 @@ class SlackServer:
 
         def start_server():
             print('starting slack server on port', port)
-            api.run(port=port)
+            api.run(port=port, host="0.0.0.0")
 
         @api.route('/slack', methods=['POST'])
         def callback():
