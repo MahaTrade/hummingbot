@@ -97,13 +97,12 @@ class StartCommand:
             # Display custom warning message for specific connectors
             warning_msg = warning_messages.get(connector, None)
             if warning_msg is not None:
-                self._notify(f"\nConnector status: {status}\n"
+                self._notify(f"\nConnector status: `{status}`\n"
                              f"{warning_msg}")
 
             # Display warning message if the exchange connector has outstanding issues or not working
             elif status != "GREEN":
-                self._notify(f"\nConnector status: {status}. This connector has one or more issues.\n"
-                             "Refer to our Github page for more info: https://github.com/coinalpha/hummingbot")
+                self._notify(f"\nConnector status: `{status}`. This connector has one or more issues.\n")
 
         await self.start_market_making(self.strategy_name, restore)
 
@@ -148,8 +147,8 @@ class StartCommand:
                     self._notify(f"Script ({script_file}) started.")
 
             self.strategy_task: asyncio.Task = safe_ensure_future(self._run_clock(), loop=self.ev_loop)
-            self._notify(f"\n`{strategy_name}` strategy started.\n"
-                         f"Run `status` command to query the progress.")
+            self._notify(f"\n:rocket: `{strategy_name}` strategy started. "
+                         f"Run `/strategy-status` command to query the progress.")
             self.logger().info("start command initiated.")
 
             if self.strategy_name == "uniswap_v3_lp":  # this would be removed in subsequent iterations

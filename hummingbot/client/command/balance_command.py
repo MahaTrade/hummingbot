@@ -78,7 +78,7 @@ class BalanceCommand:
 
     async def show_balances(self):
         total_col_name = f'Total ({RateOracle.global_token_symbol})'
-        self._notify("Updating balances, please wait... :stopwatch:")
+        self._notify("_Updating balances, please wait... _:stopwatch:")
         all_ex_bals = await UserBalances.instance().all_balances_all_exchanges()
         all_ex_avai_bals = UserBalances.instance().all_avai_balances_all_exchanges()
         all_ex_limits: Optional[Dict[str, Dict[str, str]]] = global_config_map["balance_asset_limit"].value

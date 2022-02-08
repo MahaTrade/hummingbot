@@ -212,6 +212,8 @@ class HummingbotApplication(*commands):
     async def run_commands(self, args: argparse.Namespace):
         self._initialize_notifiers()
 
+        self._notify("Waking up :eyes::eyes:")
+
         if args.connect:
             await self.connect_exchange_manual(args.connect)
             return
@@ -219,11 +221,11 @@ class HummingbotApplication(*commands):
         if args.strategy:
             await self.import_config_file(args.strategy)
 
-        self.balance()
+        if args.start:
+            self.start()
 
-        if args.slack:
             while True:
-                await asyncio.sleep(1)  # rest over here
+                await asyncio.sleep(5)  # rest over here
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()

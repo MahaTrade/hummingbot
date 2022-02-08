@@ -43,7 +43,7 @@ class ImportCommand:
         self.app.hide_input = False
         self.app.change_prompt(prompt=">>> ")
         if await self.status_check_all():
-            self._notify("\nEnter \"start\" to start market making.")
+            self._notify("\nEnter `/start` to start market making.")
             autofill_import = global_config_map.get("autofill_import").value
             if autofill_import is not None:
                 self.app.set_text(autofill_import)
