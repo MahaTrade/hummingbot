@@ -220,7 +220,9 @@ class HummingbotApplication(*commands):
             await self.import_config_file(args.strategy)
 
         if args.slack:
-            await self.app.run()
+            while True:
+
+                await asyncio.sleep(1)  # rest over here
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()
