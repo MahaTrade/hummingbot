@@ -4,7 +4,6 @@ from typing import (
     Any,
 )
 from decimal import Decimal
-import pandas as pd
 from os.path import join
 from sqlalchemy.orm import Session
 from hummingbot.client.settings import (
@@ -40,8 +39,7 @@ global_configs_to_display = ["0x_active_cancels",
                              "kill_switch_enabled",
                              "kill_switch_rate",
                              "telegram_enabled",
-                             "telegram_token",
-                             "telegram_chat_id",
+                             "slack_enabled",
                              "send_error_logs",
                              "script_enabled",
                              "script_file_path",
@@ -69,22 +67,17 @@ class ConfigCommand:
                 return
             safe_ensure_future(self._config_single_key(key, value), loop=self.ev_loop)
 
-    def list_configs(self,  # type: HummingbotApplication
-                     ):
-        columns = ["Key", "  Value"]
-        data = [["*%s*: " % cv.key, cv.value] for cv in global_config_map.values()
+    def list_configs(self):
+        data = ["%s: %s" % (cv.key, cv.value) for cv in global_config_map.values()
                 if cv.key in global_configs_to_display and not cv.is_secure]
-        df = pd.DataFrame(data=data, columns=columns)
-        self._notify("\nGlobal Configurations:")
-        lines = [line for line in df.to_string(index=False).split("\n")]
-        self._notify("\n".join(lines))
+
+        global_str = "*Global Configurations*:```\n" + "\n".join(data) + "```\n"
+        self._notify(global_str)
 
         if self.strategy_name is not None:
-            data = [[cv.printable_key or cv.key, cv.value] for cv in self.strategy_config_map.values() if not cv.is_secure]
-            df = pd.DataFrame(data=data, columns=columns)
-            self._notify("\nStrategy Configurations:")
-            lines = [line for line in df.to_string(index=False).split("\n")]
-            self._notify("\n".join(lines))
+            data = ["%s: %s" % (cv.key, cv.value) for cv in self.strategy_config_map.values() if not cv.is_secure]
+            str = "*Strategy Configurations*:```\n" + "\n".join(data) + "```\n"
+            self._notify(str)
 
     def config_able_keys(self  # type: HummingbotApplication
                          ) -> List[str]:

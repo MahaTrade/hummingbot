@@ -78,7 +78,7 @@ class BalanceCommand:
 
     async def show_balances(self):
         total_col_name = f'Total ({RateOracle.global_token_symbol})'
-        self._notify("Updating balances, please wait...")
+        self._notify("Updating balances, please wait... :stopwatch:")
         all_ex_bals = await UserBalances.instance().all_balances_all_exchanges()
         all_ex_avai_bals = UserBalances.instance().all_avai_balances_all_exchanges()
         all_ex_limits: Optional[Dict[str, Dict[str, str]]] = global_config_map["balance_asset_limit"].value
@@ -89,18 +89,22 @@ class BalanceCommand:
         exchanges_total = 0
 
         for exchange, bals in all_ex_bals.items():
-            self._notify(f"\n{exchange}:")
+            text = f"*{exchange}*: ```\n"
+
             df, allocated_total = await self.exchange_balances_extra_df(bals, all_ex_avai_bals.get(exchange, {}))
             if df.empty:
-                self._notify("You have no balance on this exchange.")
+                text += ("You have no balance on this exchange.")
             else:
                 lines = ["    " + line for line in df.to_string(index=False).split("\n")]
-                self._notify("\n".join(lines))
-                self._notify(f"\n  Total: {RateOracle.global_token_symbol} {PerformanceMetrics.smart_round(df[total_col_name].sum())}    "
-                             f"Allocated: {allocated_total / df[total_col_name].sum():.2%}")
+                text += ("\n".join(lines))
+                text += (f"\n  Total: {RateOracle.global_token_symbol} {PerformanceMetrics.smart_round(df[total_col_name].sum())}    "
+                         f"Allocated: {allocated_total / df[total_col_name].sum():.2%}")
                 exchanges_total += df[total_col_name].sum()
 
-        self._notify(f"\n\nExchanges Total: {RateOracle.global_token_symbol} {exchanges_total:.0f}    ")
+            text += '```'
+            self._notify(text)
+
+        self._notify(f"\n\n*Exchanges Total*: `{RateOracle.global_token_symbol} {exchanges_total:.0f}`")
         celo_address = global_config_map["celo_address"].value
         if celo_address is not None:
             try:

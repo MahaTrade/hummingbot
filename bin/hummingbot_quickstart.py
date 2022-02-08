@@ -77,6 +77,10 @@ class CmdlineParser(argparse.ArgumentParser):
                           required=False,
                           help="Starts the slack server to listen for commands")
 
+        self.add_argument("--start",
+                          required=False,
+                          help="Starts the strategy")
+
 
 def autofix_permissions(user_group_spec: str):
     project_home: str = os.path.realpath(os.path.join(__file__, "../../"))

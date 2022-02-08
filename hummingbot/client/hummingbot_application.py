@@ -219,6 +219,8 @@ class HummingbotApplication(*commands):
         if args.strategy:
             await self.import_config_file(args.strategy)
 
+        self.balance()
+
         if args.slack:
             while True:
                 await asyncio.sleep(1)  # rest over here
