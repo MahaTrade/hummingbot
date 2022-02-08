@@ -38,7 +38,7 @@ class ImportCommand:
         strategy = await update_strategy_config_map_from_file(strategy_path)
         self.strategy_file_name = file_name
         self.strategy_name = strategy
-        self._notify(f"Configuration from {self.strategy_file_name} file is imported.")
+        self._notify(f"Configuration from `{self.strategy_file_name}` file is imported.")
         self.placeholder_mode = False
         self.app.hide_input = False
         self.app.change_prompt(prompt=">>> ")
