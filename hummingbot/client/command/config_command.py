@@ -72,18 +72,18 @@ class ConfigCommand:
     def list_configs(self,  # type: HummingbotApplication
                      ):
         columns = ["Key", "  Value"]
-        data = [[cv.key, cv.value] for cv in global_config_map.values()
+        data = [["*%s*: " % cv.key, cv.value] for cv in global_config_map.values()
                 if cv.key in global_configs_to_display and not cv.is_secure]
         df = pd.DataFrame(data=data, columns=columns)
         self._notify("\nGlobal Configurations:")
-        lines = ["    " + line for line in df.to_string(index=False, max_colwidth=50).split("\n")]
+        lines = [line for line in df.to_string(index=False).split("\n")]
         self._notify("\n".join(lines))
 
         if self.strategy_name is not None:
             data = [[cv.printable_key or cv.key, cv.value] for cv in self.strategy_config_map.values() if not cv.is_secure]
             df = pd.DataFrame(data=data, columns=columns)
             self._notify("\nStrategy Configurations:")
-            lines = ["    " + line for line in df.to_string(index=False, max_colwidth=50).split("\n")]
+            lines = [line for line in df.to_string(index=False).split("\n")]
             self._notify("\n".join(lines))
 
     def config_able_keys(self  # type: HummingbotApplication
