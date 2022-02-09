@@ -24,5 +24,10 @@ sell_wall_remover_config_map = {
         ConfigVar(key="market",
                   prompt=market_prompt,
                   prompt_on_new=True,
-                  )
+                  ),
+    "url":
+        ConfigVar(key="url",
+                  prompt="Enter the order book url of the exchange >>>",
+                  prompt_on_new=True,
+                  ),
 }

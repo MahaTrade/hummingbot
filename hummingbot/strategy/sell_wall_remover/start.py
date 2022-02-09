@@ -6,10 +6,11 @@ from hummingbot.strategy.sell_wall_remover.sell_wall_remover_config_map import s
 def start(self):
     connector = c_map.get("connector").value.lower()
     market = c_map.get("market").value
+    url = c_map.get("url").value
 
     self._initialize_markets([(connector, [market])])
     base, quote = market.split("-")
     market_info = MarketTradingPairTuple(self.markets[connector], market, base, quote)
     self.market_trading_pair_tuples = [market_info]
 
-    self.strategy = SellWallRemover(market_info)
+    self.strategy = SellWallRemover(market_info, url)

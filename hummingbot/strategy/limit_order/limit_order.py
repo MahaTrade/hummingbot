@@ -49,6 +49,7 @@ class LimitOrder(StrategyPyBase):
 
             # The buy_with_specific_market method executes the trade for you. This
             # method is derived from the Strategy_base class.
+            print(' >> >>>>>>>>>>>>>> >', self._market_info.trading_pair)
             order_id = self.buy_with_specific_market(
                 self._market_info,  # market_trading_pair_tuple
                 Decimal("0.5"),   # amount

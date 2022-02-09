@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 import logging
+import requests
 
 from hummingbot.core.event.events import OrderType
 from hummingbot.strategy.market_trading_pair_tuple import MarketTradingPairTuple
@@ -9,6 +10,8 @@ from hummingbot.logger import HummingbotLogger
 from hummingbot.strategy.strategy_py_base import StrategyPyBase
 
 hws_logger = None
+
+ORDER_BOOK = "https://api.lbkex.com/v2/depth.do"
 
 
 class SellWallRemover(StrategyPyBase):
@@ -23,10 +26,12 @@ class SellWallRemover(StrategyPyBase):
 
     def __init__(self,
                  market_info: MarketTradingPairTuple,
+                 url: str
                  ):
 
         super().__init__()
         self._market_info = market_info
+        self._url = url
         self._connector_ready = False
         self._order_completed = False
         self.add_markets([market_info.market])
@@ -49,6 +54,9 @@ class SellWallRemover(StrategyPyBase):
 
             # The buy_with_specific_market method executes the trade for you. This
             # method is derived from the Strategy_base class.
+            response = requests.get(self._url)
+            print(response)
+
             order_id = self.buy_with_specific_market(
                 self._market_info,  # market_trading_pair_tuple
                 Decimal("0.5"),   # amount
