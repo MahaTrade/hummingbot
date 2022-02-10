@@ -61,7 +61,7 @@ from hummingbot.core.utils.estimate_fee import estimate_fee
 km_logger = None
 s_decimal_0 = Decimal(0)
 s_decimal_NaN = Decimal("nan")
-COINDCX_ROOT_API = "https://api.lbank.com"
+LBANK_ROOT_API = "https://api.lbkex.com"
 
 
 class LbankAPIError(IOError):
@@ -379,18 +379,19 @@ cdef class LbankExchange(ExchangeBase):
                            path_url,
                            data=None,
                            is_auth_required: bool = False) -> Dict[str, Any]:
-        url = COINDCX_ROOT_API + path_url
-        if is_auth_required:
-                headers = self._lbank_auth.add_auth_to_params(data)
-        else:
-            headers = {"Content-Type": "application/json"}
+        url = LBANK_ROOT_API + path_url
+        print('>>>>>>>>>>>>>>>>>>url',url)
+        
+        headers = self._lbank_auth.add_auth_to_params(data)
+
+        print('>>>>>>>>>>>>>>headers',headers)
 
         post_json = json.dumps(data,separators = (',', ':'))
 
         if method == "get":
-            response =  requests.get(url, headers=headers)
+            response =  requests.get(url,params=headers.par, headers=headers.header)
         elif method == "post":
-            response =  requests.post(url, data=post_json, headers=headers)
+            response =  requests.post(url, data=headers.par, headers=headers.header)
         elif method == "delete":
             response =  requests.delete(url, headers=headers)
         else:
@@ -410,7 +411,7 @@ cdef class LbankExchange(ExchangeBase):
 
     async def _update_balances(self):
         cdef:
-            str path_url = "/exchange/v1/users/balances"
+            str path_url = "/v2/user_info.do"
             str asset_name
             set local_asset_names = set(self._account_balances.keys())
             set remote_asset_names = set()

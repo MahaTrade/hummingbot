@@ -1,8 +1,11 @@
 # import base64
 # import json
-# import time
+import time
 import hashlib
 import hmac
+import string
+import random
+
 from typing import (
     Any,
     Dict
@@ -15,18 +18,44 @@ class LbankAuth:
         self.api_key: str = api_key
         self.secret_key: str = secret_key
 
+    def buildHmacSHA256(self, params, secret_key, t):
+        '''build the signature of the HmacSHA256'''
+
+        p = params
+        p["timestamp"] = t
+        p["signature_method"] = 'HmacSHA256'
+        par = []
+        for k in sorted(p.keys()):
+            par.append(k + '=' + str(p[k]))
+        par = '&'.join(par)
+        print('par', par)
+        msg = hashlib.md5(par.encode("utf8")).hexdigest().upper()
+
+        appsecret = bytes(secret_key, encoding='utf8')
+        data = bytes(msg, encoding='utf8')
+        signature = hmac.new(appsecret, data, digestmod=hashlib.sha256).hexdigest().lower()
+
+        return signature
+
     def add_auth_to_params(self, args: Dict[str, Any] = None) -> Dict[str, Any]:
-        secret_bytes = bytes(self.secret_key, encoding='utf-8')
+        par = args
+        num = string.ascii_letters + string.digits
+        randomstr = "".join(random.sample(num, 35))
 
-        message = 'test'
-        # json_body = json.dumps(args, separators = (',', ':'))
+        t = str(round(time.time() * 1000))
+        print('timestamp', t)
 
-        signature = hmac.new(secret_bytes, message, hashlib.sha256).hexdigest()
+        header = {"Accept-Language": 'zh-CN', "signature_method": "HmacSHA256", 'timestamp': t, 'echostr': randomstr}
 
-        headers = {
-            'Content-Type': 'application/json',
-            'X-AUTH-APIKEY': self.api_key,
-            'X-AUTH-SIGNATURE': signature
+        sign = self.buildHmacSHA256(params=par, secret_key=self.secret_key, t=t)
+
+        par['sign'] = sign
+
+        del par["timestamp"]
+
+        response: Dict[str, Any] = {
+            header: header,
+            par: par
         }
 
-        return headers
+        return response
