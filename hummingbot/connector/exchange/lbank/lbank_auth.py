@@ -28,7 +28,6 @@ class LbankAuth:
         for k in sorted(p.keys()):
             par.append(k + '=' + str(p[k]))
         par = '&'.join(par)
-        print('par', par)
         msg = hashlib.md5(par.encode("utf8")).hexdigest().upper()
 
         appsecret = bytes(secret_key, encoding='utf8')
@@ -38,6 +37,7 @@ class LbankAuth:
         return signature
 
     def add_auth_to_params(self, args: Dict[str, Any] = None) -> Dict[str, Any]:
+        print(self.secret_key)
         par = args
         num = string.ascii_letters + string.digits
         randomstr = "".join(random.sample(num, 35))
@@ -48,14 +48,16 @@ class LbankAuth:
         header = {"Accept-Language": 'zh-CN', "signature_method": "HmacSHA256", 'timestamp': t, 'echostr': randomstr}
 
         sign = self.buildHmacSHA256(params=par, secret_key=self.secret_key, t=t)
+        print('sign', sign)
 
         par['sign'] = sign
 
         del par["timestamp"]
+        del par["signature_method"]
 
-        response: Dict[str, Any] = {
-            header: header,
-            par: par
+        response = {
+            "header": header,
+            "par": par
         }
 
         return response

@@ -116,6 +116,7 @@ cdef class LbankExchange(ExchangeBase):
         self._ev_loop = asyncio.get_event_loop()
         self._lbank_auth = LbankAuth(api_key=lbank_api_key,
                                        secret_key=lbank_secret_key)
+        self._lbank_api_key = lbank_api_key
         self._in_flight_orders = {}
         self._last_poll_timestamp = 0
         self._last_timestamp = 0
@@ -379,19 +380,25 @@ cdef class LbankExchange(ExchangeBase):
                            path_url,
                            data=None,
                            is_auth_required: bool = False) -> Dict[str, Any]:
-        url = LBANK_ROOT_API + path_url
-        print('>>>>>>>>>>>>>>>>>>url',url)
         
         headers = self._lbank_auth.add_auth_to_params(data)
 
-        print('>>>>>>>>>>>>>>headers',headers)
+        url = LBANK_ROOT_API + path_url+'&sign='+headers['par']['sign']
+        print('<<<<<<<<<<<<<<<<<<<<<url>>>>>>>>>>>>>>>>>',url)
+        #print('>>>>>>>>>>>>>>par',LBANK_ROOT_API + path_url+'?api-key='+self._lbank_api_key+'&sign='+headers['par']['sign'])
 
-        post_json = json.dumps(data,separators = (',', ':'))
+
+        #post_json = json.dumps(data,separators = (',', ':'))
+        p=headers['par']
+        h=headers['header']
+        print('>>>>>>>>>>>>>>>>>>>',h,p)
 
         if method == "get":
-            response =  requests.get(url,params=headers.par, headers=headers.header)
+            response =  requests.get(url,params=headers['par'], headers=headers['header'])
         elif method == "post":
-            response =  requests.post(url, data=headers.par, headers=headers.header)
+            print('395 here')
+            response =  requests.post(url,data=headers['par'], headers=headers['header'])
+            print(response.json())
         elif method == "delete":
             response =  requests.delete(url, headers=headers)
         else:
@@ -400,18 +407,20 @@ cdef class LbankExchange(ExchangeBase):
         if response:
             # if response.status != 200:
             # raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}.")
+            response=response.json()
             try:
-                if len(response.json())>0:
+                if response['result']=='true':
                     parsed_response = response.json()
                 else:
                     parsed_response=[]
+
             except Exception:
                 raise IOError(f"Error parsing data from {url}.")
             return parsed_response
 
     async def _update_balances(self):
         cdef:
-            str path_url = "/v2/user_info.do"
+            str path_url = "/v2/user_info.do?api_key="+self._lbank_api_key
             str asset_name
             set local_asset_names = set(self._account_balances.keys())
             set remote_asset_names = set()
@@ -421,6 +430,7 @@ cdef class LbankExchange(ExchangeBase):
         }
 
         data = await self._api_request("post", path_url=path_url,data=body, is_auth_required=True)
+        print(data)
         if data:
             for balance_entry in data:
                 asset_name = convert_asset_from_exchange(balance_entry["currency"])

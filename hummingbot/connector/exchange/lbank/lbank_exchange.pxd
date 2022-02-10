@@ -10,6 +10,7 @@ cdef class LbankExchange(ExchangeBase):
         object _async_scheduler
         object _ev_loop
         object _lbank_auth
+        str _lbank_api_key
         dict _in_flight_orders
         double _last_poll_timestamp
         double _last_timestamp
