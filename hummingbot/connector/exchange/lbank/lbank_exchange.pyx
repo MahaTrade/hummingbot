@@ -385,29 +385,24 @@ cdef class LbankExchange(ExchangeBase):
 
         url = LBANK_ROOT_API + path_url+'&sign='+headers['par']['sign']
         print('<<<<<<<<<<<<<<<<<<<<<url>>>>>>>>>>>>>>>>>',url)
-        #print('>>>>>>>>>>>>>>par',LBANK_ROOT_API + path_url+'?api-key='+self._lbank_api_key+'&sign='+headers['par']['sign'])
 
 
         #post_json = json.dumps(data,separators = (',', ':'))
-        p=headers['par']
-        h=headers['header']
-        print('>>>>>>>>>>>>>>>>>>>',h,p)
 
         if method == "get":
             response =  requests.get(url,params=headers['par'], headers=headers['header'])
         elif method == "post":
-            print('395 here')
             response =  requests.post(url,data=headers['par'], headers=headers['header'])
-            print(response.json())
         elif method == "delete":
             response =  requests.delete(url, headers=headers)
         else:
             response = False
 
         if response:
-            # if response.status != 200:
-            # raise IOError(f"Error fetching data from {url}. HTTP status is {response.status}.")
             response=response.json()
+            if response['error_code'] != 00000:
+                err_url=url.split("?")
+                raise IOError(f"Error fetching data from {err_url[0]}. Error-Code : {response['error_code']}.")
             try:
                 if response['result']=='true':
                     parsed_response = response.json()
@@ -416,7 +411,7 @@ cdef class LbankExchange(ExchangeBase):
 
             except Exception:
                 raise IOError(f"Error parsing data from {url}.")
-            return parsed_response
+            return response.json()
 
     async def _update_balances(self):
         cdef:

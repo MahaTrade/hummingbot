@@ -22,6 +22,7 @@ class LbankAuth:
         '''build the signature of the HmacSHA256'''
 
         p = params
+
         p["timestamp"] = t
         p["signature_method"] = 'HmacSHA256'
         par = []
@@ -37,18 +38,17 @@ class LbankAuth:
         return signature
 
     def add_auth_to_params(self, args: Dict[str, Any] = None) -> Dict[str, Any]:
-        print(self.secret_key)
         par = args
         num = string.ascii_letters + string.digits
         randomstr = "".join(random.sample(num, 35))
 
         t = str(round(time.time() * 1000))
-        print('timestamp', t)
 
         header = {"Accept-Language": 'zh-CN', "signature_method": "HmacSHA256", 'timestamp': t, 'echostr': randomstr}
 
+        par['echostr'] = randomstr
+
         sign = self.buildHmacSHA256(params=par, secret_key=self.secret_key, t=t)
-        print('sign', sign)
 
         par['sign'] = sign
 
