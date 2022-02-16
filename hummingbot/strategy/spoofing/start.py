@@ -23,7 +23,7 @@ def start(self):
         order_refresh_time = c_map.get("order_refresh_time").value
         max_order_age = c_map.get("max_order_age").value
         bid_spread = c_map.get("bid_spread").value / Decimal('100')
-        minimum_spread = c_map.get("minimum_spread").value / Decimal('100')
+        maximum_spread = c_map.get("maximum_spread").value / Decimal('100')
         price_ceiling = c_map.get("price_ceiling").value
         price_floor = c_map.get("price_floor").value
         ping_pong_enabled = c_map.get("ping_pong_enabled").value
@@ -101,7 +101,7 @@ def start(self):
             price_ceiling=price_ceiling,
             price_floor=price_floor,
             ping_pong_enabled=ping_pong_enabled,
-            minimum_spread=minimum_spread,
+            maximum_spread=maximum_spread,
             hb_app_notification=True,
             order_override={} if order_override is None else order_override,
         )

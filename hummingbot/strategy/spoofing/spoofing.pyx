@@ -89,7 +89,7 @@ cdef class SpoofingStrategy(StrategyBase):
                  price_floor: Decimal = s_decimal_neg_one,
                  ping_pong_enabled: bool = False,
                  status_report_interval: float = 900,
-                 minimum_spread: Decimal = Decimal(0),
+                 maximum_spread: Decimal = Decimal(0),
                  hb_app_notification: bool = False,
                  order_override: Dict[str, List[str]] = {},
                  ):
@@ -101,7 +101,7 @@ cdef class SpoofingStrategy(StrategyBase):
         self._sb_order_tracker = SpoofingOrderTracker()
         self._market_info = market_info
         self._bid_spread = bid_spread
-        self._minimum_spread = minimum_spread
+        self._maximum_spread = maximum_spread
         self._order_amount = order_amount
         self._order_levels = order_levels
         self._buy_levels = order_levels
@@ -647,7 +647,7 @@ cdef class SpoofingStrategy(StrategyBase):
             self.c_cancel_active_orders_on_max_age_limit()
             self.c_cancel_active_orders(proposal)
             self.c_cancel_hanging_orders()
-            self.c_cancel_orders_below_min_spread()
+            self.c_cancel_orders_above_max_spread()
             if self.c_to_create_orders(proposal):
                 self.c_execute_orders_proposal(proposal)
         finally:
@@ -989,8 +989,8 @@ cdef class SpoofingStrategy(StrategyBase):
         self._hanging_orders_to_recreate.remove(order)
         self._hanging_order_ids.append(order_id)
 
-    # Cancel Non-Hanging, Active Orders if Spreads are below minimum_spread
-    cdef c_cancel_orders_below_min_spread(self):
+    # Cancel Non-Hanging, Active Orders if Spreads are above maximum_spread
+    cdef c_cancel_orders_above_max_spread(self):
         cdef:
             list active_orders = self.market_info_to_active_orders.get(self._market_info, [])
             object price = self.get_price()
@@ -998,11 +998,15 @@ cdef class SpoofingStrategy(StrategyBase):
                          if order.client_order_id not in self._hanging_order_ids]
         for order in active_orders:
             negation = -1 if order.is_buy else 1
-            if (negation * (order.price - price) / price) < self._minimum_spread:
-                self.logger().info(f"Order is below minimum spread ({self._minimum_spread})."
+            #print(1001,negation,order.price,price,(negation * (order.price - price) / price),self._maximum_spread)
+            if (negation * (order.price - price) / price) > self._maximum_spread:
+                self.logger().info(f"Order is above maximum spread ({self._maximum_spread})."
                                    f" Cancelling Order: ({'Buy' if order.is_buy else 'Sell'}) "
                                    f"ID - {order.client_order_id}")
                 self.c_cancel_order(self._market_info, order.client_order_id)
+            #print('1006',abs(order.price - price)/price,'>=',self._hanging_orders_cancel_pct)
+            if abs(order.price - price)/price >= self._hanging_orders_cancel_pct:
+                    self.c_cancel_order(self._market_info, order.client_order_id)
 
     cdef bint c_to_create_orders(self, object proposal):
         return self._create_timestamp < self._current_timestamp and \

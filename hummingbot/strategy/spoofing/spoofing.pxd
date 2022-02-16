@@ -10,7 +10,7 @@ cdef class SpoofingStrategy(StrategyBase):
         object _market_info
 
         object _bid_spread
-        object _minimum_spread
+        object _maximum_spread
         object _order_amount
         int _order_levels
         int _buy_levels
@@ -69,7 +69,7 @@ cdef class SpoofingStrategy(StrategyBase):
     cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices)
     cdef c_cancel_active_orders(self, object proposal)
     cdef c_cancel_hanging_orders(self)
-    cdef c_cancel_orders_below_min_spread(self)
+    cdef c_cancel_orders_above_max_spread(self)
     cdef c_cancel_active_orders_on_max_age_limit(self)
     cdef bint c_to_create_orders(self, object proposal)
     cdef c_execute_orders_proposal(self, object proposal)

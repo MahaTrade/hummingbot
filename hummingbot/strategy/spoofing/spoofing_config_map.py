@@ -132,13 +132,12 @@ spoofing_config_map = {
                   type_str="decimal",
                   validator=lambda v: validate_decimal(v, 0, 100, inclusive=False),
                   prompt_on_new=True),
-    "minimum_spread":
-        ConfigVar(key="minimum_spread",
+    "maximum_spread":
+        ConfigVar(key="maximum_spread",
                   prompt="At what minimum spread should the bot automatically cancel orders? (Enter 1 for 1%) >>> ",
-                  required_if=lambda: False,
                   type_str="decimal",
-                  default=Decimal(-100),
-                  validator=lambda v: validate_decimal(v, -100, 100, True)),
+                  validator=lambda v: validate_decimal(v, 0, 100, True),
+                  prompt_on_new=True),
     "order_refresh_time":
         ConfigVar(key="order_refresh_time",
                   prompt="How often do you want to cancel and replace bids and asks "
