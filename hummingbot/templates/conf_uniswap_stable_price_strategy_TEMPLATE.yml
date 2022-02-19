@@ -1,0 +1,13 @@
+template_version: 20
+
+ethereum_rpc_url: ""
+rpc_url: ""
+seller_contract_address:
+min_profit: 500
+target_price: 2000000000000000000
+token0_address: ""
+token1_address: ""
+pair_address: ""
+router_address: ""
+connector: uniswap
+strategy: null

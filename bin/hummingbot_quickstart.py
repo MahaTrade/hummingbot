@@ -189,7 +189,6 @@ def main():
             args.connect += [os.environ["API_PASSPHRASE"]]
 
     # If no password is given from the command line, prompt for one.
-    print(args)
     create_password(args.config_password)
     asyncio.get_event_loop().run_until_complete(quick_start(args))
 
