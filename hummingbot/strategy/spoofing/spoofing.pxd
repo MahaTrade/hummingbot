@@ -52,21 +52,7 @@ cdef class SpoofingStrategy(StrategyBase):
         object _last_own_trade_price
         list _hanging_orders_to_recreate
 
-    cdef object c_get_mid_price(self)
     cdef object c_create_base_proposal(self)
-    cdef tuple c_get_adjusted_available_balance(self, list orders)
-    cdef c_apply_order_levels_modifiers(self, object proposal)
-    cdef c_apply_price_band(self, object proposal)
-    cdef c_apply_ping_pong(self, object proposal)
-    cdef c_apply_order_price_modifiers(self, object proposal)
-    cdef c_apply_order_size_modifiers(self, object proposal)
-    cdef c_apply_inventory_skew(self, object proposal)
-    cdef c_apply_budget_constraint(self, object proposal)
-
-    cdef c_filter_out_takers(self, object proposal)
-    cdef c_apply_order_optimization(self, object proposal)
-    cdef c_apply_add_transaction_costs(self, object proposal)
-    cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices)
     cdef c_cancel_active_orders(self, object proposal)
     cdef c_cancel_hanging_orders(self)
     cdef c_cancel_orders_above_max_spread(self)
