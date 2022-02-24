@@ -3,15 +3,16 @@
 import asyncio
 import logging
 import time
-from hashlib import sha256
-from hmac import HMAC
 from typing import (
     AsyncIterable,
     Dict,
     Optional,
     List,
 )
-import ujson
+import json
+import socketio
+import hmac
+import hashlib
 import websockets
 from websockets.exceptions import ConnectionClosed
 
@@ -21,12 +22,25 @@ from hummingbot.logger import HummingbotLogger
 # from hummingbot.core.data_type.order_book_message import OrderBookMessage
 from hummingbot.connector.exchange.coindcx.coindcx_order_book import CoindcxOrderBook
 
+socketEndpoint = 'wss://stream.coindcx.com'
+sio = socketio.Client()
+
+sio.connect(socketEndpoint, transports = 'websocket')
+api_key = '6b704411e1e416bac93dad3f17813e6ded5f23caff181b66'
+secret_key = 'a1fd56eff81aec64d80f75e3b5b96390bdd3cfaade0608055d8106265335fbce'
+
+
 COINDCX_USER_STREAM_ENDPOINT = "https://stream.coindcx.com"
 MAX_RETRIES = 20
 NaN = float("nan")
 
-api_key = 'XXXX'
-secret_key = 'XXXX'
+secret_bytes = bytes(secret_key, encoding='utf-8')
+
+body = {"channel": "coindcx"}
+json_body = json.dumps(body, separators = (',', ':'))
+signature = hmac.new(secret_bytes, json_body.encode(), hashlib.sha256).hexdigest()
+
+sio.emit('join', {'channelName': 'coindcx', 'authSignature': signature, 'apiKey': api_key})
 
 
 class CoindcxAPIUserStreamDataSource(UserStreamTrackerDataSource):
@@ -48,7 +62,16 @@ class CoindcxAPIUserStreamDataSource(UserStreamTrackerDataSource):
         self._current_listen_key = None
         self._listen_for_user_stream_task = None
         self._last_recv_time: float = 0
+        self._socket_data: Dict = {}
         super().__init__()
+
+    @property
+    def socket_data(self):
+        return self._socket_data
+
+    @socket_data.setter
+    def socket_data(self, data):
+        self._socket_data = data
 
     @property
     def order_book_class(self):
@@ -72,37 +95,12 @@ class CoindcxAPIUserStreamDataSource(UserStreamTrackerDataSource):
         """
         while True:
             try:
-                async with websockets.connect(COINDCX_USER_STREAM_ENDPOINT) as ws:
-                    ws: websockets.WebSocketClientProtocol = ws
-
-                    timestamp = int(time.time() * 1000)
-                    message = str(timestamp)
-
-                    sign = HMAC(key=secret_key.encode(),
-                                msg=message.encode(),
-                                digestmod=sha256).hexdigest()
-
-                    subscribe_request: Dict[str, any] = {
-                        "method": "login",
-                        "params": {
-                            "type": "HS256",
-                            "api_key": api_key,
-                            "timestamp": timestamp,
-                            "signature": sign
-                        }
-                    }
-                    await ws.send(ujson.dumps(subscribe_request))
-
-                    subscribe_request: Dict[str, any] = {
-                        "method": "spot_subscribe",
-                        "params": {},
-                        "id": 123
-                    }
-                    await ws.send(ujson.dumps(subscribe_request))
-
-                    async for raw_msg in self._inner_messages(ws):
-                        msg = ujson.loads(raw_msg)
-                        output.put_nowait(msg)
+                @sio.on('balance-update')
+                def on_message(response):
+                    self.data = response
+                    self.socket_data = response
+                    print('get_data', self.socket_data)
+                output.put_nowait(self.socket_data)
             except asyncio.CancelledError:
                 raise
             except Exception:
@@ -135,3 +133,6 @@ class CoindcxAPIUserStreamDataSource(UserStreamTrackerDataSource):
             return
         finally:
             await ws.close()
+
+
+sio.emit('leave', {'channelName': 'coindcx'})
