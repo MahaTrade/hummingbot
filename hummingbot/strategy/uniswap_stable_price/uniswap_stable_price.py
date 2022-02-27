@@ -121,7 +121,7 @@ class UniswapStablePrice(StrategyPyBase):
 
     # After initializing the required variables, we define the tick method.
     # The tick method is the entry point for the strategy.
-    def tick(self):
+    def tick(self, timestamp):
         targetPriceContract = self.w3.eth.contract(str(self.seller_contract_address), abi=self._get_abi('TargetPriceUniswapBotV1'))
         token0 = self.w3.eth.contract(str(self.token0_address), abi=self._get_abi('erc20'))
         token1 = self.w3.eth.contract(str(self.token1_address), abi=self._get_abi('erc20'))
