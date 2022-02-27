@@ -148,7 +148,7 @@ class UniswapStablePrice(StrategyPyBase):
 
             self.notify(
                 f'Executing arbitrage opportunity with a balance of `{arthBalance} {self.token0_symbol}`' +
-                f'`{usdcBalance} {self.token1_symbol}` - [<{etherscan_hash}|hash>]'
+                f' `{usdcBalance} {self.token1_symbol}` - [<{etherscan_hash}|hash>]'
             )
 
             self.w3.eth.waitForTransactionReceipt(tx_hash)
