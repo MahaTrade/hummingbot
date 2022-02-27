@@ -66,7 +66,7 @@ class UniswapStablePrice(StrategyPyBase):
         self._check_approvals(self.token0_address)
         self._check_approvals(self.token1_address)
 
-        self.format_status()
+        self.notify(self.format_status())
 
     def _get_abi(self, filename):
         path = pathlib.Path(__file__).parent.resolve()
@@ -111,7 +111,7 @@ class UniswapStablePrice(StrategyPyBase):
         etherscan = f'https://bscscan.com/address/${self.me}'
 
         return (
-            f"I am <{etherscan}|{self.me}> and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
+            f"I am `<{etherscan}|{self.me}>` and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
                 arthBalance,
                 self.token0_symbol,
                 usdcBalance,
