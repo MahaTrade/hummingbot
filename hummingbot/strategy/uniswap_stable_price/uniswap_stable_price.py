@@ -66,7 +66,7 @@ class UniswapStablePrice(StrategyPyBase):
         self._check_approvals(self.token0_address)
         self._check_approvals(self.token1_address)
 
-        self.notify(f"i am: {self.me}")
+        self.format_status()
 
     def _get_abi(self, filename):
         path = pathlib.Path(__file__).parent.resolve()
@@ -76,7 +76,8 @@ class UniswapStablePrice(StrategyPyBase):
         return abi
 
     def _check_approvals(self, token: str):
-        print("Checking approvals for %s" % token)
+        etherscan = f'https://bscscan.com/token/${token}'
+        self.notify(f"Checking approvals for `<{etherscan}|{token}>`")
         erc20 = self.w3.eth.contract(str(token), abi=self._get_abi('erc20'))
         allowance = erc20.functions.allowance(
             str(self.me),
@@ -95,7 +96,7 @@ class UniswapStablePrice(StrategyPyBase):
             self.w3.eth.waitForTransactionReceipt(tx_hash)
 
     def notify(self, msg: str):
-        self.logger().info(msg)
+        self.notify_hb_app(msg)
 
     def format_status(self):
         token0 = self.w3.eth.contract(str(self.token0_address), abi=self._get_abi('erc20'))
@@ -110,7 +111,7 @@ class UniswapStablePrice(StrategyPyBase):
         etherscan = f'https://bscscan.com/address/${self.me}'
 
         return (
-            f"I am [{self.me}]({etherscan}) and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
+            f"I am <{etherscan}|{self.me}> and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
                 arthBalance,
                 self.token0_symbol,
                 usdcBalance,
@@ -146,7 +147,7 @@ class UniswapStablePrice(StrategyPyBase):
 
             self.notify(
                 f'Executing arbitrage opportunity with a balance of `{arthBalance} {self.token0_symbol}`' +
-                f'`{usdcBalance} {self.token1_symbol}` - [hash]({etherscan_hash})'
+                f'`{usdcBalance} {self.token1_symbol}` - [<{etherscan_hash}|hash>]'
             )
 
             self.w3.eth.waitForTransactionReceipt(tx_hash)
