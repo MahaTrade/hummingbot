@@ -144,7 +144,7 @@ class UniswapStablePrice(StrategyPyBase):
 
             singedTx = self.acct.signTransaction(tx)
             tx_hash = self.w3.eth.sendRawTransaction(singedTx.rawTransaction)
-            etherscan_hash = f'{self.explorer_url}/tx/{tx_hash}'
+            etherscan_hash = f'{self.explorer_url}/tx/{tx_hash.hex()}'
 
             self.notify(
                 f'Executing arbitrage opportunity with a balance of `{arthBalance} {self.token0_symbol}`' +
