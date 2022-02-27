@@ -76,7 +76,7 @@ class UniswapStablePrice(StrategyPyBase):
         return abi
 
     def _check_approvals(self, token: str):
-        etherscan = f'https://bscscan.com/token/${token}'
+        etherscan = f'https://bscscan.com/token/{token}'
         self.notify(f"Checking approvals for `<{etherscan}|{token}>`")
         erc20 = self.w3.eth.contract(str(token), abi=self._get_abi('erc20'))
         allowance = erc20.functions.allowance(
@@ -108,7 +108,7 @@ class UniswapStablePrice(StrategyPyBase):
         arthBalance = arthBalance18 / 10 ** self.token0_decimals
         usdcBalance = usdcBalance18 / 10 ** self.token1_decimals
 
-        etherscan = f'https://bscscan.com/address/${self.me}'
+        etherscan = f'https://bscscan.com/address/{self.me}'
 
         return (
             f"I am `<{etherscan}|{self.me}>` and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
@@ -143,7 +143,7 @@ class UniswapStablePrice(StrategyPyBase):
 
             singedTx = self.acct.signTransaction(tx)
             tx_hash = self.w3.eth.sendRawTransaction(singedTx.rawTransaction)
-            etherscan_hash = f'https://bscscan.com/tx/${tx_hash}'
+            etherscan_hash = f'https://bscscan.com/tx/{tx_hash}'
 
             self.notify(
                 f'Executing arbitrage opportunity with a balance of `{arthBalance} {self.token0_symbol}`' +
