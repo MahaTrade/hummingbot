@@ -16,3 +16,4 @@ token0_decimals: 18
 token1_decimals: 18
 token0_symbol: ARTH
 token1_symbol: BUSD
+explorer_url: "https://etherscan.io"

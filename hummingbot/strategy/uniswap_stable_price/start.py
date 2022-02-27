@@ -14,6 +14,7 @@ def start(self):
     pair_address = c_map.get('pair_address').value.lower()
     router_address = c_map.get('router_address').value.lower()
     token0_decimals = c_map.get('token0_decimals').value
+    explorer_url = c_map.get('explorer_url').value
     token1_decimals = c_map.get('token1_decimals').value
     token0_symbol = c_map.get('token0_symbol').value
     token1_symbol = c_map.get('token1_symbol').value
@@ -21,6 +22,7 @@ def start(self):
     ethereum_wallet = global_config_map.get("ethereum_wallet").value
 
     self.strategy = UniswapStablePrice(
+        explorer_url=explorer_url,
         ethereum_wallet=ethereum_wallet,
         token0_decimals=token0_decimals,
         token1_decimals=token1_decimals,

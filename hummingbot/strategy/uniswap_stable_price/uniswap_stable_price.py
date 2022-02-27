@@ -22,6 +22,7 @@ class UniswapStablePrice(StrategyPyBase):
     def __init__(
         self,
         ethereum_wallet: str,
+        explorer_url: str,
         rpc_ws_url: str,
         rpc_url: str,
         seller_contract_address: str,
@@ -39,6 +40,7 @@ class UniswapStablePrice(StrategyPyBase):
         super().__init__()
 
         self.ethereum_wallet = ethereum_wallet
+        self.explorer_url = explorer_url
         self.rpc_ws_url = rpc_ws_url
         self.rpc_url = rpc_url
         self.seller_contract_address = Web3.toChecksumAddress(seller_contract_address)
@@ -56,7 +58,6 @@ class UniswapStablePrice(StrategyPyBase):
 
         w3 = Web3(Web3.HTTPProvider(rpc_url))
         acct = w3.eth.account.privateKeyToAccount(ethereum_wallet)
-        # w3.eth.defaultAccount = acct
 
         self.w3 = w3
         self.acct = acct
@@ -76,7 +77,7 @@ class UniswapStablePrice(StrategyPyBase):
         return abi
 
     def _check_approvals(self, token: str):
-        etherscan = f'https://bscscan.com/token/{token}'
+        etherscan = f'{self.explorer_url}/token/{token}'
         self.notify(f"Checking approvals for `<{etherscan}|{token}>`")
         erc20 = self.w3.eth.contract(str(token), abi=self._get_abi('erc20'))
         allowance = erc20.functions.allowance(
@@ -108,7 +109,7 @@ class UniswapStablePrice(StrategyPyBase):
         arthBalance = arthBalance18 / 10 ** self.token0_decimals
         usdcBalance = usdcBalance18 / 10 ** self.token1_decimals
 
-        etherscan = f'https://bscscan.com/address/{self.me}'
+        etherscan = f'{self.explorer_url}/address/{self.me}'
 
         return (
             f"I am `<{etherscan}|{self.me}>` and my balance is now `%d %s` and `%d %s` (Total: `$%d`)" % (
@@ -143,7 +144,7 @@ class UniswapStablePrice(StrategyPyBase):
 
             singedTx = self.acct.signTransaction(tx)
             tx_hash = self.w3.eth.sendRawTransaction(singedTx.rawTransaction)
-            etherscan_hash = f'https://bscscan.com/tx/{tx_hash}'
+            etherscan_hash = f'{self.explorer_url}/tx/{tx_hash}'
 
             self.notify(
                 f'Executing arbitrage opportunity with a balance of `{arthBalance} {self.token0_symbol}`' +

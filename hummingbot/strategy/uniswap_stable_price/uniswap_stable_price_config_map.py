@@ -16,6 +16,13 @@ uniswap_stable_price_config_map = {
         default=False,
     ),
 
+    "explorer_url": ConfigVar(
+        key="explorer_url",
+        prompt="Enter the explorer url to use >>> ",
+        prompt_on_new=True,
+        default=False,
+    ),
+
     "rpc_ws_url": ConfigVar(
         key="rpc_ws_url",
         prompt="Enter the RPC websocket url to connect to >>> ",
