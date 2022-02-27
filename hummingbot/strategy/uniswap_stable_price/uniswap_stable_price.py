@@ -117,7 +117,7 @@ class UniswapStablePrice(StrategyPyBase):
                 self.token0_symbol,
                 usdcBalance,
                 self.token1_symbol,
-                arthBalance * 2 + usdcBalance
+                float(arthBalance * 2) + float(usdcBalance)
             )
         )
 
@@ -166,7 +166,7 @@ class UniswapStablePrice(StrategyPyBase):
                     self.token0_symbol,
                     usdcBalance,
                     self.token1_symbol,
-                    arthBalance * 2 + usdcBalance
+                    float(arthBalance * 2) + float(usdcBalance)
                 )
             )
 
