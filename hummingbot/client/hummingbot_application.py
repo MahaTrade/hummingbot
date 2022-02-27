@@ -328,5 +328,4 @@ class HummingbotApplication(*commands):
                     )
                 )
         for notifier in self.notifiers:
-            print('starting', notifier)
             notifier.start()

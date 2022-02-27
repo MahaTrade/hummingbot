@@ -11,3 +11,8 @@ pair_address: ""
 router_address: ""
 connector: uniswap
 strategy: null
+rpc_ws_url: ""
+token0_decimals: 18
+token1_decimals: 18
+token0_symbol: ARTH
+token1_symbol: BUSD

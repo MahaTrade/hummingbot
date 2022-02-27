@@ -11,6 +11,13 @@ uniswap_stable_price_config_map = {
 
     "rpc_url": ConfigVar(
         key="rpc_url",
+        prompt="Enter the RPC http url to connect to >>> ",
+        prompt_on_new=True,
+        default=False,
+    ),
+
+    "rpc_ws_url": ConfigVar(
+        key="rpc_ws_url",
         prompt="Enter the RPC websocket url to connect to >>> ",
         prompt_on_new=True,
         default=False,
@@ -43,6 +50,36 @@ uniswap_stable_price_config_map = {
         prompt_on_new=True,
         key="token0_address",
         default=False,
+    ),
+
+    "token0_decimals": ConfigVar(
+        default=18,
+        key="token0_decimals",
+        prompt_on_new=True,
+        prompt="Enter the decimals of the ARTH token to trade >>> ",
+        type_str="decimal",
+    ),
+
+    "token1_decimals": ConfigVar(
+        default=18,
+        key="token1_decimals",
+        prompt_on_new=True,
+        prompt="Enter the decimals of the second token to trade >>> ",
+        type_str="decimal",
+    ),
+
+    "token0_symbol": ConfigVar(
+        default="ARTH",
+        key="token0_symbol",
+        prompt_on_new=True,
+        prompt="Enter the symbol of the ARTH token to trade >>> ",
+    ),
+
+    "token1_symbol": ConfigVar(
+        default="BUSD",
+        key="token1_symbol",
+        prompt_on_new=True,
+        prompt="Enter the symbol of the second token to trade >>> ",
     ),
 
     "token1_address": ConfigVar(

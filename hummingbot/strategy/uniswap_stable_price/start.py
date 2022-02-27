@@ -1,5 +1,6 @@
 from .uniswap_stable_price import UniswapStablePrice
 from .uniswap_stable_price_config_map import uniswap_stable_price_config_map as c_map
+from hummingbot.client.config.global_config_map import global_config_map
 
 
 def start(self):
@@ -12,13 +13,20 @@ def start(self):
     token1_address = c_map.get('token1_address').value.lower()
     pair_address = c_map.get('pair_address').value.lower()
     router_address = c_map.get('router_address').value.lower()
-
-    # self._initialize_markets([(connector, [market])])
-    # base, quote = market.split("-")
-    # market_info = MarketTradingPairTuple(self.markets[connector], market, base, quote)
-    # self.market_trading_pair_tuples = [market_info]
+    token0_decimals = c_map.get('token0_decimals').value
+    token1_decimals = c_map.get('token1_decimals').value
+    token0_symbol = c_map.get('token0_symbol').value
+    token1_symbol = c_map.get('token1_symbol').value
+    rpc_ws_url = c_map.get('rpc_ws_url').value.lower()
+    ethereum_wallet = global_config_map.get("ethereum_wallet").value
 
     self.strategy = UniswapStablePrice(
+        ethereum_wallet=ethereum_wallet,
+        token0_decimals=token0_decimals,
+        token1_decimals=token1_decimals,
+        token0_symbol=token0_symbol,
+        token1_symbol=token1_symbol,
+        rpc_ws_url=rpc_ws_url,
         rpc_url=rpc_url,
         seller_contract_address=seller_contract_address,
         min_profit=min_profit,
@@ -28,4 +36,3 @@ def start(self):
         pair_address=pair_address,
         router_address=router_address,
     )
-    # self.strategy = LimitOrder(market_info)
