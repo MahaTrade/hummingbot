@@ -193,7 +193,7 @@ main_config_map = {
                   prompt="Specify token list url of a list available on https://tokenlists.org/ >>> ",
                   type_str="str",
                   required_if=lambda: global_config_map["bsc_wallet"].value is not None,
-                  default="https://dex.binance.org/api/v1/tokens"),
+                  default="https://gist.githubusercontent.com/comandar21/f9c019f1320eb3cb5ebd55c6ae2bfaa5/raw/3766476b4551827cb52e429a1170d11adf73319f/bsctokens.json"),
 
     # Whether or not to invoke cancel_all on exit if marketing making on a open order book DEX (e.g. Radar Relay)
     "on_chain_cancel_on_exit":

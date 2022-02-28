@@ -112,7 +112,7 @@ class PancakeswapConnector(ConnectorBase):
         while True:
             try:
                 # self.logger().info(f"Initializing Pancakeswap connector and paths for {self._trading_pairs} pairs.")
-                resp = await self._api_request("get", "eth/pancakeswap/start",
+                resp = await self._api_request("get", "bsc/pancakeswap/start",
                                                {"pairs": json.dumps(self._trading_pairs)})
                 status = bool(str(resp["success"]))
                 if status:
@@ -149,7 +149,7 @@ class PancakeswapConnector(ConnectorBase):
         :param token_symbol: token to approve.
         """
         resp = await self._api_request("post",
-                                       "eth/approve",
+                                       "bsc/approve",
                                        {"token": token_symbol,
                                         "connector": self.name})
         amount_approved = Decimal(str(resp["amount"]))
@@ -165,7 +165,7 @@ class PancakeswapConnector(ConnectorBase):
         :return: A dictionary of token and its allowance (how much Pancakeswap can spend).
         """
         ret_val = {}
-        resp = await self._api_request("post", "eth/allowances",
+        resp = await self._api_request("post", "bsc/allowances",
                                        {"tokenList": "[" + (",".join(['"' + t + '"' for t in self._tokens])) + "]",
                                         "connector": self.name})
         for token, amount in resp["approvals"].items():
@@ -186,7 +186,7 @@ class PancakeswapConnector(ConnectorBase):
             base, quote = trading_pair.split("-")
             side = "buy" if is_buy else "sell"
             resp = await self._api_request("post",
-                                           "eth/pancakeswap/price",
+                                           "bsc/pancakeswap/price",
                                            {"base": base,
                                             "quote": quote,
                                             "side": side.upper(),
@@ -299,7 +299,7 @@ class PancakeswapConnector(ConnectorBase):
                       "limitPrice": str(price),
                       }
         try:
-            order_result = await self._api_request("post", "eth/pancakeswap/trade", api_params)
+            order_result = await self._api_request("post", "bsc/pancakeswap/trade", api_params)
             hash = order_result.get("txHash")
             gas_price = order_result.get("gasPrice")
             gas_limit = order_result.get("gasLimit")
@@ -377,7 +377,7 @@ class PancakeswapConnector(ConnectorBase):
             for tracked_order in tracked_orders:
                 order_id = await tracked_order.get_exchange_order_id()
                 tasks.append(self._api_request("post",
-                                               "eth/poll",
+                                               "bsc/poll",
                                                {"txHash": order_id}))
             update_results = await safe_gather(*tasks, return_exceptions=True)
             for update_result in update_results:
@@ -530,7 +530,7 @@ class PancakeswapConnector(ConnectorBase):
             local_asset_names = set(self._account_balances.keys())
             remote_asset_names = set()
             resp_json = await self._api_request("post",
-                                                "eth/balances",
+                                                "bsc/balances",
                                                 {"tokenList": "[" + (",".join(['"' + t + '"' for t in self._tokens])) + "]"})
 
             for token, bal in resp_json["balances"].items():
@@ -582,6 +582,7 @@ class PancakeswapConnector(ConnectorBase):
             if params["privateKey"][:2] != "0x":
                 params["privateKey"] = "0x" + params["privateKey"]
             response = await client.post(url, data=params)
+            print('>>>>>>>>>>>>>>>>>>>>>>>', response)
 
         parsed_response = json.loads(await response.text())
         if response.status != 200:

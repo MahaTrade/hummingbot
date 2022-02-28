@@ -2,13 +2,15 @@
 A collection of utility functions for querying and checking Ethereum data
 """
 
-import aiohttp
+# import aiohttp
 from hummingbot.client.config.global_config_map import global_config_map
 from hummingbot.core.utils import async_ttl_cache
 import itertools as it
 import logging
 from typing import List
 from web3 import Web3
+# import json
+import requests
 
 
 def is_connected_to_web3(bsc_rpc_url: str) -> bool:
@@ -82,9 +84,10 @@ async def get_token_list():
     """
 
     token_list_url = global_config_map.get("bsc_token_list_url").value
-    async with aiohttp.ClientSession() as client:
-        resp = await client.get(token_list_url)
-        return await resp.json()
+    response = requests.get(token_list_url)
+    # with aiohttp.ClientSession() as client:
+    #     resp = client.get(token_list_url)
+    return response.json()
 
 
 @async_ttl_cache(ttl=30)

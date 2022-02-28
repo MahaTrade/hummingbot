@@ -162,6 +162,15 @@ def get_eth_wallet_private_key() -> Optional[str]:
     return account.privateKey.hex()
 
 
+def get_bsc_wallet_private_key() -> Optional[str]:
+    bsc_wallet = global_config_map.get("bsc_wallet").value
+    if bsc_wallet is None or bsc_wallet == "":
+        return None
+    private_key = Security._private_keys[bsc_wallet]
+    account = Account.privateKeyToAccount(private_key)
+    return account.privateKey.hex()
+
+
 def _merge_dicts(*args: Dict[str, ConfigVar]) -> OrderedDict:
     """
     Helper function to merge a few dictionaries into an ordered dictionary.

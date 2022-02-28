@@ -23,6 +23,7 @@ from hummingbot.client.ui.hummingbot_cli import HummingbotCLI
 from hummingbot.client.ui.completer import load_completer
 from hummingbot.client.config.global_config_map import global_config_map, using_wallet
 from hummingbot.client.config.config_helpers import (
+    get_bsc_wallet_private_key,
     get_strategy_config_map,
     get_connector_class,
     get_eth_wallet_private_key,
@@ -280,14 +281,23 @@ class HummingbotApplication(*commands):
                 init_params = conn_setting.conn_init_parameters(keys)
                 init_params.update(trading_pairs=trading_pairs, trading_required=self._trading_required)
                 if conn_setting.use_ethereum_wallet:
-                    ethereum_rpc_url = global_config_map.get("ethereum_rpc_url").value
-                    # Todo: Hard coded this execption for now until we figure out how to handle all ethereum connectors.
+                    rpc_url = ''
+                    if connector_name in ["balancer", "uniswap", "uniswap_v3", "perpetual_finance"]:
+                        rpc_url = global_config_map.get("ethereum_rpc_url").value
+                    elif connector_name in ['pancakeswap']:
+                        rpc_url = global_config_map.get("bsc_rpc_url").value
+
+                        # Todo: Hard coded this execption for now until we figure out how to handle all ethereum connectors.
                     if connector_name in ["balancer", "uniswap", "uniswap_v3", "perpetual_finance"]:
                         private_key = get_eth_wallet_private_key()
-                        init_params.update(wallet_private_key=private_key, ethereum_rpc_url=ethereum_rpc_url)
+                        init_params.update(wallet_private_key=private_key, ethereum_rpc_url=rpc_url)
+                    elif connector_name in ["pancakeswap"]:
+                        private_key = get_bsc_wallet_private_key()
+                        init_params.update(wallet_private_key=private_key, bsc_rpc_url=rpc_url)
                     else:
                         assert self.wallet is not None
-                        init_params.update(wallet=self.wallet, ethereum_rpc_url=ethereum_rpc_url)
+                        init_params.update(wallet=self.wallet, ethereum_rpc_url=rpc_url)
+                print('>>>>>>>>>>>>>>>>???????????????init_params', init_params)
                 connector_class = get_connector_class(connector_name)
                 connector = connector_class(**init_params)
             self.markets[connector_name] = connector
