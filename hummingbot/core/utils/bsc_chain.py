@@ -98,8 +98,8 @@ async def fetch_trading_pairs() -> List[str]:
     """
     tokens = set()
     resp_json = await get_token_list()
-    for token in resp_json:
-        tokens.add(token["original_symbol"])
+    for token in resp_json["tokens"]:
+        tokens.add(token["symbol"])
     trading_pairs = []
     for base, quote in it.permutations(tokens, 2):
         trading_pairs.append(f"{base}-{quote}")
