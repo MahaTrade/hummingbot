@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from hummingbot.client.hummingbot_application import HummingbotApplication
 
 OPTIONS = {cs.name for cs in settings.CONNECTOR_SETTINGS.values()
-           if not cs.use_ethereum_wallet}.union({"ethereum", "celo", "bsc"})
+           if not cs.use_ethereum_wallet}.union({"ethereum", "celo", "bsc", "polygon"})
 
 
 class ConnectCommand:
@@ -25,6 +25,8 @@ class ConnectCommand:
             safe_ensure_future(self.connect_ethereum())
         elif option == "bsc":
             safe_ensure_future(self.connect_bsc())
+        elif option == "polygon":
+            safe_ensure_future(self.connect_polygon())
         elif option == "celo":
             safe_ensure_future(self.connect_celo())
         else:
@@ -173,6 +175,41 @@ class ConnectCommand:
                 return
             save_to_yml(settings.GLOBAL_CONFIG_PATH, global_config_map)
             err_msg = UserBalances.validate_ethereum_wallet()
+            if err_msg is None:
+                self._notify(f"Wallet {public_address} connected to hummingbot.")
+            else:
+                self._notify(f"\nError: {err_msg}")
+        self.placeholder_mode = False
+        self.app.hide_input = False
+        self.app.change_prompt(prompt=">>> ")
+
+    async def connect_polygon(self,  # type: HummingbotApplication
+                              ):
+        self.placeholder_mode = True
+        self.app.hide_input = True
+        ether_wallet = global_config_map["polygon_wallet"].value
+        to_connect = True
+        if ether_wallet is not None:
+            answer = await self.app.prompt(prompt=f"Would you like to replace your existing Bsc wallet "
+                                                  f"{ether_wallet} (Yes/No)? >>> ")
+            if self.app.to_stop_config:
+                self.app.to_stop_config = False
+                return
+            if answer.lower() not in ("yes", "y"):
+                to_connect = False
+        if to_connect:
+            private_key = await self.app.prompt(prompt="Enter your wallet private key >>> ", is_password=True)
+            public_address = Security.add_private_key(private_key)
+            global_config_map["polygon_wallet"].value = public_address
+            if global_config_map["polygon_rpc_url"].value is None:
+                await self.prompt_a_config(global_config_map["polygon_rpc_url"])
+            if global_config_map["polygon_rpc_ws_url"].value is None:
+                await self.prompt_a_config(global_config_map["polygon_rpc_ws_url"])
+            if self.app.to_stop_config:
+                self.app.to_stop_config = False
+                return
+            save_to_yml(settings.GLOBAL_CONFIG_PATH, global_config_map)
+            err_msg = UserBalances.validate_polygon_wallet()
             if err_msg is None:
                 self._notify(f"Wallet {public_address} connected to hummingbot.")
             else:

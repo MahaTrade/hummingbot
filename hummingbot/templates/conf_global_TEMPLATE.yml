@@ -114,11 +114,18 @@ ethereum_rpc_ws_url: null
 ethereum_chain_name: MAIN_NET
 ethereum_token_list_url: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
 
-# bsc_wallet:
-# bsc_rpc_url:
-# bsc_rpc_ws_url: null
-# bsc_chain_name: MAIN_NET
-bsc_token_list_url: https://dex.binance.org/api/v1/tokens
+bsc_wallet:
+bsc_rpc_url:
+bsc_rpc_ws_url: null
+bsc_chain_name: MAIN_NET
+bsc_token_list_url: https://gist.githubusercontent.com/comandar21/f9c019f1320eb3cb5ebd55c6ae2bfaa5/raw/32a5aebb8fe7fd7680782f75112e2c259f29b756/bsctokens.json
+
+
+polygon_wallet:
+polygon_rpc_url:
+polygon_rpc_ws_url: null
+polygon_chain_name: MAIN_NET
+polygon_token_list_url: https://gist.githubusercontent.com/comandar21/2651939759148cd289c3ead52bfe7f1f/raw/a3a052e60c9d84c36078a4b5fd96b9e93cdb2b4f/polygontokens.json
 
 # Kill switch
 kill_switch_enabled: null

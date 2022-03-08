@@ -171,6 +171,15 @@ def get_bsc_wallet_private_key() -> Optional[str]:
     return account.privateKey.hex()
 
 
+def get_polygon_wallet_private_key() -> Optional[str]:
+    polygon_wallet = global_config_map.get("polygon_wallet").value
+    if polygon_wallet is None or polygon_wallet == "":
+        return None
+    private_key = Security._private_keys[polygon_wallet]
+    account = Account.privateKeyToAccount(private_key)
+    return account.privateKey.hex()
+
+
 def _merge_dicts(*args: Dict[str, ConfigVar]) -> OrderedDict:
     """
     Helper function to merge a few dictionaries into an ordered dictionary.
@@ -183,6 +192,8 @@ def _merge_dicts(*args: Dict[str, ConfigVar]) -> OrderedDict:
 
 def get_connector_class(connector_name: str) -> Callable:
     conn_setting = CONNECTOR_SETTINGS[connector_name]
+    print('195>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', conn_setting)
+
     mod = __import__(conn_setting.module_path(),
                      fromlist=[conn_setting.class_name()])
     return getattr(mod, conn_setting.class_name())

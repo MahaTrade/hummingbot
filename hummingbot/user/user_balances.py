@@ -165,6 +165,22 @@ class UserBalances:
         return None
 
     @staticmethod
+    def validate_polygon_wallet() -> Optional[str]:
+        if global_config_map.get("polygon_wallet").value is None:
+            return "polygon wallet is required."
+        if global_config_map.get("polygon_rpc_url").value is None:
+            return "polygon_rpc_url is required."
+        if global_config_map.get("polygon_rpc_ws_url").value is None:
+            return "polygon_rpc_ws_url is required."
+        if global_config_map.get("polygon_wallet").value not in Security.private_keys():
+            return "Bsc private key file does not exist or corrupts."
+        try:
+            UserBalances.ethereum_balance()
+        except Exception as e:
+            return str(e)
+        return None
+
+    @staticmethod
     async def base_amount_ratio(exchange, trading_pair, balances) -> Optional[Decimal]:
         try:
             base, quote = trading_pair.split("-")

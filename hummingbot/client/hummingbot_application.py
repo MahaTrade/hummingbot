@@ -27,6 +27,7 @@ from hummingbot.client.config.config_helpers import (
     get_strategy_config_map,
     get_connector_class,
     get_eth_wallet_private_key,
+    get_polygon_wallet_private_key
 )
 from hummingbot.strategy.strategy_base import StrategyBase
 from hummingbot.strategy.cross_exchange_market_making import CrossExchangeMarketPair
@@ -286,6 +287,8 @@ class HummingbotApplication(*commands):
                         rpc_url = global_config_map.get("ethereum_rpc_url").value
                     elif connector_name in ['pancakeswap']:
                         rpc_url = global_config_map.get("bsc_rpc_url").value
+                    elif connector_name in ['quickswap']:
+                        rpc_url = global_config_map.get("polygon_rpc_url").value
 
                         # Todo: Hard coded this execption for now until we figure out how to handle all ethereum connectors.
                     if connector_name in ["balancer", "uniswap", "uniswap_v3", "perpetual_finance"]:
@@ -294,10 +297,13 @@ class HummingbotApplication(*commands):
                     elif connector_name in ["pancakeswap"]:
                         private_key = get_bsc_wallet_private_key()
                         init_params.update(wallet_private_key=private_key, bsc_rpc_url=rpc_url)
+                    elif connector_name in ["quickswap"]:
+                        private_key = get_polygon_wallet_private_key()
+                        init_params.update(wallet_private_key=private_key, polygon_rpc_url=rpc_url)
                     else:
                         assert self.wallet is not None
                         init_params.update(wallet=self.wallet, ethereum_rpc_url=rpc_url)
-                print('>>>>>>>>>>>>>>>>???????????????init_params', init_params)
+                print('connector_name', connector_name)
                 connector_class = get_connector_class(connector_name)
                 connector = connector_class(**init_params)
             self.markets[connector_name] = connector

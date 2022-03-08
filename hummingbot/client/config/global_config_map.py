@@ -193,7 +193,35 @@ main_config_map = {
                   prompt="Specify token list url of a list available on https://tokenlists.org/ >>> ",
                   type_str="str",
                   required_if=lambda: global_config_map["bsc_wallet"].value is not None,
-                  default="https://gist.githubusercontent.com/comandar21/f9c019f1320eb3cb5ebd55c6ae2bfaa5/raw/3766476b4551827cb52e429a1170d11adf73319f/bsctokens.json"),
+                  default="https://gist.githubusercontent.com/comandar21/f9c019f1320eb3cb5ebd55c6ae2bfaa5/raw/32a5aebb8fe7fd7680782f75112e2c259f29b756/bsctokens.json"),
+
+    "polygon_wallet":
+        ConfigVar(key="polygon_wallet",
+                  prompt="Enter your wallet private key >>> ",
+                  type_str="str",
+                  required_if=lambda: False,
+                  is_connect_key=True),
+    "polygon_rpc_url":
+        ConfigVar(key="polygon_rpc_url",
+                  prompt="Which polygon node would you like your client to connect to? >>> ",
+                  required_if=lambda: global_config_map["polygon_wallet"].value is not None),
+    "polygon_rpc_ws_url":
+        ConfigVar(key="polygon_rpc_ws_url",
+                  prompt="Enter the Websocket Address of your polygon Node >>> ",
+                  required_if=lambda: global_config_map["polygon_rpc_url"].value is not None),
+    "polygon_chain_name":
+        ConfigVar(key="polygon_chain_name",
+                  prompt="What is your preferred polygon chain name (MATIC))? >>> ",
+                  type_str="str",
+                  required_if=lambda: False,
+                  validator=lambda s: None if s in {"MATIC"} else "Invalid chain name.",
+                  default="MATIC"),
+    "polygon_token_list_url":
+        ConfigVar(key="polygon_token_list_url",
+                  prompt="Specify token list url of a list available on https://tokenlists.org/ >>> ",
+                  type_str="str",
+                  required_if=lambda: global_config_map["polygon_wallet"].value is not None,
+                  default="https://gist.githubusercontent.com/comandar21/2651939759148cd289c3ead52bfe7f1f/raw/a3a052e60c9d84c36078a4b5fd96b9e93cdb2b4f/polygontokens.json"),
 
     # Whether or not to invoke cancel_all on exit if marketing making on a open order book DEX (e.g. Radar Relay)
     "on_chain_cancel_on_exit":
