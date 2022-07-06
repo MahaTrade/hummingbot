@@ -45,8 +45,6 @@ class ScallopRestApi:
             raise NotImplementedError
         try:
             parsed_response = json.loads(await response.text())
-            # print(url)
-            # print(parsed_response)
         except Exception as e:
             raise IOError(f"Error parsing data from {url}. Error: {str(e)}")
         if response.status != 200:
@@ -112,6 +110,5 @@ class ScallopRestApi:
         """
         Calls REST API to update total and available balances.
         """
-        print('get_balance')
         account_info = await self.request("get", "account", {}, True)
         return account_info

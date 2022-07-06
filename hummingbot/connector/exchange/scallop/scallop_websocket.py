@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import asyncio
-import copy
+# import copy
 import logging
 import websockets
 import zlib
@@ -128,16 +128,19 @@ class ScallopWebsocket(RequestId):
                 await self.disconnect()
 
     # emit messages
-    async def _emit(self, method: str, data: Optional[Any] = {}) -> int:
+    async def _emit(self, method: str, data: str = {}) -> int:
         id = self.generate_request_id()
 
         payload = {
-            "id": id,
-            "method": method,
-            "params": copy.deepcopy(data),
+            # "id": id,
+            "event": method,
+            "params": {
+                "channel": data
+            },
         }
 
         req = ujson.dumps(payload)
+        print('req', req)
         self.logger().network(req)   # todo remove log
         await self._client.send(req)
 
@@ -149,7 +152,7 @@ class ScallopWebsocket(RequestId):
 
     # subscribe to a method
     async def subscribe(self, category: str, channels: List[str]) -> int:
-        id = await self.request(category + ".subscribe", channels)
+        id = await self.request(category, channels)
         msg = await self._messages()
         if msg.get('error') is not None:
             raise ConnectionError(f'subscribe {category} {channels} failed: {msg}')

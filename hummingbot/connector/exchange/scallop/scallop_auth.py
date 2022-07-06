@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 import base64
+import time
 # from os import times
 import aiohttp
 from typing import List, Dict, Any
@@ -46,18 +47,15 @@ class ScallopAuth():
         data: Dict[str, Any] = None
     ):
         data = ''
-        nonce = int(self.time_patcher.time())
-
-        if(len(str(int(self.time_patcher.time()))) != 13):
-            nonce = int(self.time_patcher.time() * 1000)
-
+        nonce = int(round(time.time() * 1000))
+        # if(len(str(nonce)) != 13):
+        #     nonce = int(self.time_patcher.time() * 1000) - 2 * 1000
         if data is not {}:
             data = str(nonce) + method.upper() + path_url + str(data)
         else:
             data = str(nonce) + method.upper() + path_url
 
         payload = data
-        print('payload', payload)
         sig = hmac.new(
             self.secret_key.encode('utf-8'),
             payload.encode('utf-8'),
@@ -68,13 +66,14 @@ class ScallopAuth():
             'X-CH-SIGN': sig,
             'X-CH-TS': str(nonce),
         }
-        print(header)
         return header
 
     def generate_ws_signature(self) -> List[Any]:
         data = [None] * 3
         data[0] = self.api_key
-        nonce = int(self.time_patcher.time() * 1000)
+        nonce = int(round(time.time() * 1000))
+        if(len(str(nonce)) != 13):
+            nonce = int(nonce * 1000)
         data[1] = str(nonce)
 
         data[2] = base64.b64encode(hmac.new(

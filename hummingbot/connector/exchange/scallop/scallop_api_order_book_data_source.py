@@ -41,12 +41,13 @@ class ScallopAPIOrderBookDataSource(OrderBookTrackerDataSource):
     @classmethod
     async def get_last_traded_prices(cls, trading_pairs: List[str]) -> Dict[str, float]:
         result = {}
+        pair = trading_pairs[0].replace('-', '')
         async with aiohttp.ClientSession() as client:
-            resp = await client.get(f"{constants.REST_URL}/ticker")
+            resp = await client.get(f"{constants.REST_URL}/sapi/v1/ticker?symbol="
+                                    f"{pair}")
             resp_json = await resp.json()
             for t_pair in trading_pairs:
-                last_trade = [o["last"] for o in resp_json["ticker"] if o["symbol"] ==
-                              scallop_utils.convert_to_exchange_trading_pair(t_pair)]
+                last_trade = [resp_json["last"]]
                 if last_trade and last_trade[0] is not None:
                     result[t_pair] = last_trade[0]
         return result
@@ -113,11 +114,8 @@ class ScallopAPIOrderBookDataSource(OrderBookTrackerDataSource):
                 ws = ScallopWebsocket()
                 await ws.connect()
 
-                await ws.subscribe("trades", list(map(
-                    lambda pair: f"{scallop_utils.convert_to_ws_trading_pair(pair)}",
-                    self._trading_pairs
-                )))
-
+                await ws.subscribe("sub", f"market_{scallop_utils.convert_to_ws_trading_pair(self._trading_pairs[0])}_ticker")
+                print(121, ws.on_message())
                 async for response in ws.on_message():
                     params = response["params"]
                     symbol = params[2]
@@ -146,11 +144,8 @@ class ScallopAPIOrderBookDataSource(OrderBookTrackerDataSource):
             try:
                 ws = ScallopWebsocket()
                 await ws.connect()
-
-                await ws.subscribe("depth", list(map(
-                    lambda pair: f"{scallop_utils.convert_to_ws_trading_pair(pair)}",
-                    self._trading_pairs
-                )))
+                print(self._trading_pairs[0])
+                await ws.subscribe("sub", f"market_{scallop_utils.convert_to_ws_trading_pair(self._trading_pairs[0])}_depth_step0")
 
                 async for response in ws.on_message():
                     if response is None or 'params' not in response:

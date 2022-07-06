@@ -510,7 +510,6 @@ class ScallopExchange(ExchangeBase):
                 await asyncio.sleep(0.5)
 
     async def _update_balances(self):
-        print('update_balance')
         local_asset_names = set(self._account_balances.keys())
         remote_asset_names = set()
         account_info = await self._global.rest_api.get_balance()

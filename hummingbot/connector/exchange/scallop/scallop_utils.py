@@ -70,7 +70,7 @@ def convert_to_exchange_trading_pair(hb_trading_pair: str) -> str:
 
 
 def convert_to_ws_trading_pair(hb_trading_pair: str) -> str:
-    return hb_trading_pair.replace("-", "_")
+    return hb_trading_pair.replace("-", "").lower()
 
 
 def get_new_client_order_id(is_buy: bool, trading_pair: str) -> str:

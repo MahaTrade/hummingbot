@@ -8,8 +8,8 @@ else:
 
 EXCHANGE_NAME = "scallop"
 REST_URL = f"https://{host}"
-WSS_PRIVATE_URL = f"wss://{host}/ws/v1/"
-WSS_PUBLIC_URL = f"wss://{host}/ws/v1/"
+WSS_PRIVATE_URL = "wss://ws.scallop.exchange/kline-api/ws"
+WSS_PUBLIC_URL = "wss://ws.scallop.exchange/kline-api/ws"
 
 API_REASONS = {
     0: "Success",
