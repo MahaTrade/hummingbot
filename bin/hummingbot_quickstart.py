@@ -147,7 +147,13 @@ async def quick_start(args: argparse.Namespace):
 
     slack = SlackServer(hb, hb.ev_loop)
 
-    tasks: List[Coroutine] = [hb.run(), start_existing_gateway_container()]
+    tasks: List[Coroutine] = [start_existing_gateway_container()]
+
+    if args.slack:
+        tasks.append(slack.run())
+
+    tasks.append(hb.run_commands(args))
+
     if global_config_map.get("debug_console").value:
         management_port: int = detect_available_port(8211)
         tasks.append(start_management_console(locals(), host="localhost", port=management_port))

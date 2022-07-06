@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import asyncio
 import logging
 import time
@@ -235,6 +236,24 @@ class HummingbotApplication(*commands):
 
     async def run(self):
         await self.app.run()
+
+    async def run_commands(self, args: argparse.Namespace):
+        self._initialize_notifiers()
+
+        self.notify("Waking up :eyes::eyes:")
+
+        if args.connect:
+            await self.connect_exchange_manual(args.connect)
+            return
+
+        if args.strategy:
+            await self.import_config_file(args.strategy)
+
+        if args.start:
+            self.start()
+
+            while True:
+                await asyncio.sleep(5)  # rest over here
 
     def add_application_warning(self, app_warning: ApplicationWarning):
         self._expire_old_application_warnings()
