@@ -134,13 +134,13 @@ class StatusCommand:
             return True
 
         # Preliminary checks.
-        self.notify("\nPreliminary checks:")
+        self.notify("\n*Preliminary checks*:")
         if self.strategy_name is None or self.strategy_file_name is None:
-            self.notify('  - Strategy check: Please import or create a strategy.')
+            self.notify('*Strategy check*: Please import or create a strategy.')
             return False
 
         if not Security.is_decryption_done():
-            self.notify('  - Security check: Encrypted files are being processed. Please wait and try again later.')
+            self.notify('*Security check*: Encrypted files are being processed. Please wait and try again later.')
             return False
 
         network_timeout = float(global_config_map["other_commands_timeout"].value)
@@ -154,15 +154,15 @@ class StatusCommand:
             for ex, err_msg in invalid_conns.items():
                 self.notify(f"    {ex}: {err_msg}")
         elif notify_success:
-            self.notify('  - Exchange check: All connections confirmed.')
+            self.notify('*Exchange check*: All connections confirmed.')
 
         missing_configs = self.missing_configurations()
         if missing_configs:
-            self.notify("  - Strategy check: Incomplete strategy configuration. The following values are missing.")
+            self.notify("*Strategy check*: Incomplete strategy configuration. The following values are missing.")
             for config in missing_configs:
                 self.notify(f"    {config.key}")
         elif notify_success:
-            self.notify('  - Strategy check: All required parameters confirmed.')
+            self.notify('*Strategy check*: All required parameters confirmed.')
         if invalid_conns or missing_configs:
             return False
 
@@ -198,5 +198,5 @@ class StatusCommand:
             return False
 
         self.application_warning()
-        self.notify("  - All checks: Confirmed.")
+        self.notify("*All checks*: Confirmed.")
         return True

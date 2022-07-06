@@ -103,7 +103,7 @@ class CreateCommand:
             self.strategy_name = None
             raise
         if all_status_go:
-            self.notify("\nEnter \"start\" to start market making.")
+            self.notify("\nEnter `/start` to start market making.")
 
     async def prompt_a_config(self,  # type: HummingbotApplication
                               config: ConfigVar,

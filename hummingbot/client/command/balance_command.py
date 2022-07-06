@@ -82,7 +82,7 @@ class BalanceCommand:
     async def show_balances(self):
         total_col_name = f'Total ({RateOracle.global_token_symbol})'
         sum_not_for_show_name = "sum_not_for_show"
-        self.notify("Updating balances, please wait...")
+        self.notify("_Updating balances, please wait... _:stopwatch:")
         network_timeout = float(global_config_map["other_commands_timeout"].value)
         try:
             all_ex_bals = await asyncio.wait_for(
@@ -101,21 +101,26 @@ class BalanceCommand:
 
         for exchange, bals in all_ex_bals.items():
             self.notify(f"\n{exchange}:")
+            text = f"*{exchange}*: ```\n"
+
             df, allocated_total = await self.exchange_balances_extra_df(exchange, bals, all_ex_avai_bals.get(exchange, {}))
             if df.empty:
-                self.notify("You have no balance on this exchange.")
+                text += ("You have no balance on this exchange.")
             else:
-                lines = ["    " + line for line in df.drop(sum_not_for_show_name, axis=1).to_string(index=False).split("\n")]
-                self.notify("\n".join(lines))
-                self.notify(f"\n  Total: {RateOracle.global_token_symbol} "
-                            f"{PerformanceMetrics.smart_round(df[total_col_name].sum())}")
+                lines = ["    " + line for line in df.to_string(index=False).split("\n")]
+                text += ("\n".join(lines))
+                text += (f"\n  Total: {RateOracle.global_token_symbol} {PerformanceMetrics.smart_round(df[total_col_name].sum())}    ")
+
                 allocated_percentage = 0
                 if df[sum_not_for_show_name].sum() != Decimal("0"):
                     allocated_percentage = allocated_total / df[sum_not_for_show_name].sum()
-                self.notify(f"Allocated: {allocated_percentage:.2%}")
+                text += (f"Allocated: {allocated_percentage:.2%}")
                 exchanges_total += df[total_col_name].sum()
 
-        self.notify(f"\n\nExchanges Total: {RateOracle.global_token_symbol} {exchanges_total:.0f}    ")
+            text += '```'
+            self.notify(text)
+
+        self.notify(f"\n\n*Exchanges Total*: `{RateOracle.global_token_symbol} {exchanges_total:.0f}`")
 
         celo_address = global_config_map["celo_address"].value
         if celo_address is not None:

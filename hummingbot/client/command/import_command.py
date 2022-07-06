@@ -54,7 +54,7 @@ class ImportCommand:
             self.strategy_name = None
             raise
         if all_status_go:
-            self.notify("\nEnter \"start\" to start market making.")
+            self.notify("\nEnter `/start` to start market making.")
             autofill_import = global_config_map.get("autofill_import").value
             if autofill_import is not None:
                 self.app.set_text(autofill_import)

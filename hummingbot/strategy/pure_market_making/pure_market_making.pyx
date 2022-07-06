@@ -1108,9 +1108,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+                self.notify_hb_app(
+                    f"Hanging maker *BUY* order `{limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                    f"{limit_order_record.price} {limit_order_record.quote_currency}` is filled."
                 )
                 return
 
@@ -1127,9 +1127,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        self.notify_hb_app(
+            f"Maker *BUY* order `{limit_order_record.quantity} {limit_order_record.base_currency} @ "
+            f"{limit_order_record.price} {limit_order_record.quote_currency}` is filled."
         )
 
     cdef c_did_complete_sell_order(self, object order_completed_event):
@@ -1148,9 +1148,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
                     f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
                 )
-                self.notify_hb_app_with_timestamp(
-                    f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+                self.notify_hb_app(
+                    f"Hanging maker *SELL* order `{limit_order_record.quantity} {limit_order_record.base_currency} @ "
+                    f"{limit_order_record.price} {limit_order_record.quote_currency}` is filled."
                 )
                 return
 
@@ -1167,9 +1167,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             f"({limit_order_record.quantity} {limit_order_record.base_currency} @ "
             f"{limit_order_record.price} {limit_order_record.quote_currency}) has been completely filled."
         )
-        self.notify_hb_app_with_timestamp(
-            f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+        self.notify_hb_app(
+            f"Maker *SELL* order `{limit_order_record.quantity} {limit_order_record.base_currency} @ "
+            f"{limit_order_record.price} {limit_order_record.quote_currency}` is filled."
         )
 
     cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices):

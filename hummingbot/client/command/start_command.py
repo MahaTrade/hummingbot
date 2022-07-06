@@ -61,7 +61,7 @@ class StartCommand(GatewayChainApiManager):
                           restore: Optional[bool] = False,
                           strategy_file_name: Optional[str] = None):
         if self._in_start_check or (self.strategy_task is not None and not self.strategy_task.done()):
-            self.notify('The bot is already running - please run "stop" first')
+            self.notify('The bot is already running - please run `/stop` first')
             return
 
         self._in_start_check = True
@@ -162,15 +162,14 @@ class StartCommand(GatewayChainApiManager):
 
             # Display custom warning message for specific connectors
             elif warning_msg is not None:
-                self.notify(f"\nConnector status: {status}\n"
+                self.notify(f"\nConnector status: `{status}`\n"
                             f"{warning_msg}")
 
             # Display warning message if the exchange connector has outstanding issues or not working
             elif not status.endswith("GREEN"):
-                self.notify(f"\nConnector status: {status}. This connector has one or more issues.\n"
-                            "Refer to our Github page for more info: https://github.com/coinalpha/hummingbot")
+                self.notify(f"\nConnector status: `{status}`. This connector has one or more issues.")
 
-        self.notify(f"\nStatus check complete. Starting '{self.strategy_name}' strategy...")
+        self.notify(f"\nStatus check complete. Starting `{self.strategy_name}` strategy...")
         await self.start_market_making(restore)
 
         self._in_start_check = False
@@ -222,8 +221,10 @@ class StartCommand(GatewayChainApiManager):
                     self.notify(f"PMM script ({pmm_script_file}) started.")
 
             self.strategy_task: asyncio.Task = safe_ensure_future(self._run_clock(), loop=self.ev_loop)
-            self.notify(f"\n'{self.strategy_name}' strategy started.\n"
-                        f"Run `status` command to query the progress.")
+            self.notify(
+                f"\n:rocket: `{self.strategy_name}` strategy started. "
+                f"Run `/strategy-status` command to query the progress."
+            )
             self.logger().info("start command initiated.")
 
             if self._trading_required:

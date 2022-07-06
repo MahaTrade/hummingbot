@@ -1,9 +1,7 @@
 import asyncio
 from decimal import Decimal
 from os.path import join
-from typing import Any, List, TYPE_CHECKING
-
-import pandas as pd
+from typing import TYPE_CHECKING, Any, List
 
 import hummingbot.client.config.global_config_map as global_config
 from hummingbot.client.config.config_helpers import missing_required_configs, save_to_yml
@@ -11,9 +9,7 @@ from hummingbot.client.config.config_validators import validate_bool, validate_d
 from hummingbot.client.config.config_var import ConfigVar
 from hummingbot.client.config.security import Security
 from hummingbot.client.settings import CONF_FILE_PATH, GLOBAL_CONFIG_PATH
-from hummingbot.client.ui.interface_utils import format_df_for_printout
 from hummingbot.client.ui.style import load_style
-from hummingbot.core.utils import map_df_to_str
 from hummingbot.core.utils.async_utils import safe_ensure_future
 from hummingbot.model.inventory_cost import InventoryCost
 from hummingbot.strategy.perpetual_market_making import PerpetualMarketMakingStrategy
@@ -42,6 +38,7 @@ global_configs_to_display = ["autofill_import",
                              "telegram_enabled",
                              "telegram_token",
                              "telegram_chat_id",
+                             "slack_enabled",
                              "send_error_logs",
                              global_config.PMM_SCRIPT_ENABLED_KEY,
                              global_config.PMM_SCRIPT_FILE_PATH_KEY,
@@ -79,29 +76,29 @@ class ConfigCommand:
                 return
             safe_ensure_future(self._config_single_key(key, value), loop=self.ev_loop)
 
-    def list_configs(self,  # type: HummingbotApplication
-                     ):
-        columns = ["Key", "  Value"]
-        data = [[cv.key, cv.value] for cv in global_config.global_config_map.values()
-                if cv.key in global_configs_to_display and not cv.is_secure]
-        df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-        self.notify("\nGlobal Configurations:")
-        lines = ["    " + line for line in format_df_for_printout(df, max_col_width=50).split("\n")]
-        self.notify("\n".join(lines))
+    def list_configs(self):
+        data = [
+            "%s: %s" % (cv.key, cv.value) for cv in global_config.global_config_map.values()
+            if cv.key in global_configs_to_display and not cv.is_secure
+        ]
 
-        data = [[cv.key, cv.value] for cv in global_config.global_config_map.values()
-                if cv.key in color_settings_to_display and not cv.is_secure]
-        df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-        self.notify("\nColor Settings:")
-        lines = ["    " + line for line in format_df_for_printout(df, max_col_width=50).split("\n")]
-        self.notify("\n".join(lines))
+        global_str = "*Global Configurations*:```\n" + "\n".join(data) + "```\n"
+        self.notify(global_str)
+
+        # lines = ["    " + line for line in format_df_for_printout(df, max_col_width=50).split("\n")]
+        # self.notify("\n".join(lines))
+
+        # data = [[cv.key, cv.value] for cv in global_config.global_config_map.values()
+        #         if cv.key in color_settings_to_display and not cv.is_secure]
+        # df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
+        # self.notify("\nColor Settings:")
+        # lines = ["    " + line for line in format_df_for_printout(df, max_col_width=50).split("\n")]
+        # self.notify("\n".join(lines))
 
         if self.strategy_name is not None:
-            data = [[cv.printable_key or cv.key, cv.value] for cv in self.strategy_config_map.values() if not cv.is_secure]
-            df = map_df_to_str(pd.DataFrame(data=data, columns=columns))
-            self.notify("\nStrategy Configurations:")
-            lines = ["    " + line for line in format_df_for_printout(df, max_col_width=50).split("\n")]
-            self.notify("\n".join(lines))
+            data = ["%s: %s" % (cv.key, cv.value) for cv in self.strategy_config_map.values() if not cv.is_secure]
+            str = "*Strategy Configurations*:```\n" + "\n".join(data) + "```\n"
+            self.notify(str)
 
     def config_able_keys(self  # type: HummingbotApplication
                          ) -> List[str]:
