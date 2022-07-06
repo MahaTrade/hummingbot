@@ -665,7 +665,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         warning_lines.extend(self.network_warning([self._market_info]))
 
         markets_df = map_df_to_str(self.market_status_data_frame([self._market_info]))
-        lines.extend(["", "  Markets:"] + ["    " + line for line in markets_df.to_string(index=False).split("\n")])
+        lines.extend(["", "*Markets:*```"] + [line for line in markets_df.to_string(index=False).split("\n")] + ["```"])
 
         assets_df = map_df_to_str(self.pure_mm_assets_df(not self._inventory_skew_enabled))
         # append inventory skew stats.
@@ -676,12 +676,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         first_col_length = max(*assets_df[0].apply(len))
         df_lines = assets_df.to_string(index=False, header=False,
                                        formatters={0: ("{:<" + str(first_col_length) + "}").format}).split("\n")
-        lines.extend(["", "  Assets:"] + ["    " + line for line in df_lines])
+        lines.extend(["", "*Assets:*```"] + [line for line in df_lines] + ["```"])
 
         # See if there're any open orders.
         if len(self.active_orders) > 0:
             df = map_df_to_str(self.active_orders_df())
-            lines.extend(["", "  Orders:"] + ["    " + line for line in df.to_string(index=False).split("\n")])
+            lines.extend(["", "  *Orders*:```"] + [line for line in df.to_string(index=False).split("\n")] + ["```"])
         else:
             lines.extend(["", "  No active maker orders."])
 
