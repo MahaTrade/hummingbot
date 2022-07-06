@@ -30,6 +30,7 @@ from hummingbot.logger import HummingbotLogger
 from hummingbot.logger.application_warning import ApplicationWarning
 from hummingbot.model.sql_connection_manager import SQLConnectionManager
 from hummingbot.notifier.notifier_base import NotifierBase
+from hummingbot.notifier.slack_notifier import SlackNotifier
 from hummingbot.notifier.telegram_notifier import TelegramNotifier
 from hummingbot.strategy.cross_exchange_market_making import CrossExchangeMarketPair
 from hummingbot.strategy.market_trading_pair_tuple import MarketTradingPairTuple
@@ -294,6 +295,18 @@ class HummingbotApplication(*commands):
                         hb=self,
                     )
                 )
+
+        if global_config_map.get("slack_enabled").value:
+            # TODO: refactor to use single instance
+            if not any([isinstance(n, SlackNotifier) for n in self.notifiers]):
+                self.notifiers.append(
+                    SlackNotifier(
+                        token=global_config_map["slack_token"].value,
+                        channel=global_config_map["slack_channel"].value,
+                        hb=self,
+                    )
+                )
+
         for notifier in self.notifiers:
             notifier.start()
 

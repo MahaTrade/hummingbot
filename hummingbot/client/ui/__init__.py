@@ -129,3 +129,18 @@ def login_prompt(style: Style = default_dialog_style):
             style=style).run()
         return login_prompt(style)
     return True
+
+
+def create_password(password):
+    import time
+
+    from hummingbot.client.config.security import Security
+
+    if Security.new_password_required():
+        Security.login(password)
+        # encrypt current timestamp as a dummy to prevent promping for password if bot exits without connecting an exchange
+        dummy = f"{time.time()}"
+        Security.update_secure_config("default", dummy)
+        return True
+
+    return False

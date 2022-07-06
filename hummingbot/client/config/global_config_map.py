@@ -159,6 +159,27 @@ main_config_map = {
         ConfigVar(key="telegram_chat_id",
                   prompt="What is your telegram chat id? >>> ",
                   required_if=lambda: False),
+
+    # Slack Notifier
+    "slack_enabled":
+        ConfigVar(key="slack_enabled",
+                  prompt="Would you like to enable slack? >>> ",
+                  type_str="bool",
+                  default=False,
+                  required_if=lambda: False),
+    "slack_token":
+        ConfigVar(key="slack_token",
+                  prompt="What is your slack token? >>> ",
+                  required_if=lambda: False),
+    "slack_channel":
+        ConfigVar(key="slack_channel",
+                  prompt="What is your slack channel id? >>> ",
+                  required_if=lambda: False),
+    "slack_verification_token":
+        ConfigVar(key="slack_verification_token",
+                  prompt="What is your slack verification token? >>> ",
+                  required_if=lambda: False),
+
     "send_error_logs":
         ConfigVar(key="send_error_logs",
                   prompt="Would you like to send error logs to hummingbot? (Yes/No) >>> ",

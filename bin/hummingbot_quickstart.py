@@ -25,12 +25,12 @@ from hummingbot.client.config.global_config_map import global_config_map
 from hummingbot.client.config.security import Security
 from hummingbot.client.hummingbot_application import HummingbotApplication
 from hummingbot.client.settings import CONF_FILE_PATH, AllConnectorSettings
-from hummingbot.client.ui import login_prompt
-from hummingbot.client.ui.style import load_style
+from hummingbot.client.ui import create_password
 from hummingbot.core.event.events import HummingbotUIEvent
 from hummingbot.core.gateway import start_existing_gateway_container
 from hummingbot.core.management.console import start_management_console
 from hummingbot.core.utils.async_utils import safe_gather
+from hummingbot.notifier.slack_server import SlackServer
 
 
 class CmdlineParser(argparse.ArgumentParser):
@@ -40,7 +40,11 @@ class CmdlineParser(argparse.ArgumentParser):
                           type=str,
                           required=False,
                           help="Specify a file in `conf/` to load as the strategy config file.")
-        self.add_argument("--config-password", "-p",
+        self.add_argument("--wallet", "-w",
+                          type=str,
+                          required=False,
+                          help="Specify the wallet public key you would like to use.")
+        self.add_argument("--config-password", "--wallet-password", "-p",
                           type=str,
                           required=False,
                           help="Specify the password to unlock your encrypted files.")
@@ -49,6 +53,26 @@ class CmdlineParser(argparse.ArgumentParser):
                           required=False,
                           help="Try to automatically set config / logs / data dir permissions, "
                                "useful for Docker containers.")
+        self.add_argument("--connect",
+                          required=False,
+                          nargs='*',
+                          help="Tries to connect to the given exchange")
+        self.add_argument("--strategy",
+                          type=str,
+                          required=False,
+                          help="Specify the strategy config to load.")
+        self.add_argument("--slackChannel",
+                          type=str,
+                          required=False)
+        self.add_argument("--slackToken",
+                          type=str,
+                          required=False)
+        self.add_argument("--slack",
+                          required=False,
+                          help="Starts the slack server to listen for commands")
+        self.add_argument("--start",
+                          required=False,
+                          help="Starts the strategy")
 
 
 def autofix_permissions(user_group_spec: str):
@@ -100,6 +124,14 @@ async def quick_start(args: argparse.Namespace):
     if not global_config_map.get("kill_switch_enabled"):
         global_config_map.get("kill_switch_enabled").value = False
 
+    if args.slackChannel:
+        global_config_map.get("slack_enabled").value = True
+        global_config_map.get("slack_channel").value = args.slackChannel
+
+    if args.slackToken:
+        global_config_map.get("slack_enabled").value = True
+        global_config_map.get("slack_token").value = args.slackToken
+
     if hb.strategy_name and hb.strategy_file_name:
         if not all_configs_complete(hb.strategy_name):
             hb.status()
@@ -108,6 +140,12 @@ async def quick_start(args: argparse.Namespace):
     # uses weak references to remove unneeded listeners.
     start_listener: UIStartListener = UIStartListener(hb)
     hb.app.add_listener(HummingbotUIEvent.Start, start_listener)
+
+    # if hb.strategy_file_name is not None and hb.strategy_name is not None:
+    #     await write_config_to_yml(hb.strategy_name, hb.strategy_file_name)
+    #     hb.start(log_level)
+
+    slack = SlackServer(hb, hb.ev_loop)
 
     tasks: List[Coroutine] = [hb.run(), start_existing_gateway_container()]
     if global_config_map.get("debug_console").value:
@@ -125,14 +163,27 @@ def main():
     # variable.
     if args.config_file_name is None and len(os.environ.get("CONFIG_FILE_NAME", "")) > 0:
         args.config_file_name = os.environ["CONFIG_FILE_NAME"]
+    if args.wallet is None and len(os.environ.get("WALLET", "")) > 0:
+        args.wallet = os.environ["WALLET"]
     if args.config_password is None and len(os.environ.get("CONFIG_PASSWORD", "")) > 0:
         args.config_password = os.environ["CONFIG_PASSWORD"]
 
+    if args.slackToken is None and len(os.environ.get("SLACK_TOKEN", "")) > 0:
+        args.slackToken = os.environ["SLACK_TOKEN"]
+
+    if args.slackChannel is None and len(os.environ.get("SLACK_CHANNEL", "")) > 0:
+        args.slackChannel = os.environ["SLACK_CHANNEL"]
+
+    if args.connect is not None:
+        if len(os.environ.get("API_KEY", "")) > 0:
+            args.connect += [os.environ["API_KEY"]]
+        if len(os.environ.get("API_PASSWORD", "")) > 0:
+            args.connect += [os.environ["API_PASSWORD"]]
+        if len(os.environ.get("API_PASSPHRASE", "")) > 0:
+            args.connect += [os.environ["API_PASSPHRASE"]]
+
     # If no password is given from the command line, prompt for one.
-    asyncio.get_event_loop().run_until_complete(read_system_configs_from_yml())
-    if args.config_password is None:
-        if not login_prompt(style=load_style()):
-            return
+    create_password(args.config_password)
 
     asyncio.get_event_loop().run_until_complete(quick_start(args))
 
