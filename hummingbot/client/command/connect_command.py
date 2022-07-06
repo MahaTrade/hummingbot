@@ -90,6 +90,28 @@ class ConnectCommand:
         self.app.hide_input = False
         self.app.change_prompt(prompt=">>> ")
 
+    async def connect_exchange_manual(self, args):
+        exchange = args[0]
+
+        exchange_configs = [c for c in global_config_map.values()
+                            if c.key in AllConnectorSettings.get_connector_settings()[exchange].config_keys and c.is_connect_key]
+
+        if len(args) is not len(exchange_configs) + 1:
+            self.notify("\nError: Invalid number of config parameters for connect function")
+            return
+
+        count = 0
+        for config in exchange_configs:
+            Security.update_secure_config(config.key, args[count + 1])
+            count = count + 1
+        api_keys = await Security.api_keys(exchange)
+        err_msg = await UserBalances.instance().add_exchange(exchange, **api_keys)
+
+        if err_msg is None:
+            self.notify(f"\nYou are now connected to {exchange}.")
+        else:
+            self.notify(f"\nError: {err_msg}")
+
     async def show_connections(self  # type: HummingbotApplication
                                ):
         self.notify("\nTesting connections, please wait...")
